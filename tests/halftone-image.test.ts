@@ -1,0 +1,11 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { decodePhotograph } from '../src/halftone/image';
+import { imageBytes } from '../src/halftone/model';
+function file(bytes:Uint8Array,name='photo.jpg'){const f=new File([bytes],name);Object.defineProperty(f,'slice',{value:(a:number,b:number)=>({arrayBuffer:async()=>bytes.slice(a,b).buffer})});return f;}
+afterEach(()=>vi.unstubAllGlobals());
+describe('JPG / PNG 原生圖片解碼流程',()=>{
+ it('JPG 使用瀏覽器解碼器及 Canvas 讀取灰階，尊重照片方向並釋放資源',async()=>{const close=vi.fn(),bitmap=vi.fn(async()=>({width:960,height:640,close})),draw=vi.fn(),rgba=new Uint8ClampedArray(960*640*4);for(let i=0;i<960*640;i++)rgba.set([20,80,130,255],i*4);vi.stubGlobal('createImageBitmap',bitmap);vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockReturnValue({drawImage:draw,getImageData:()=>({data:rgba})} as unknown as CanvasRenderingContext2D);const jpg=new Uint8Array(readFileSync(process.cwd()+'/src/halftone/mountain.jpg')),im=await decodePhotograph(file(jpg));expect(bitmap).toHaveBeenCalledWith(expect.any(File),{imageOrientation:'from-image'});expect(draw).toHaveBeenCalled();expect(im.format).toBe('JPEG');expect(im.width).toBe(960);expect(im.height).toBe(640);expect(close).toHaveBeenCalled();expect(imageBytes(im)[0]).toBe(Math.round(.2126*20+.7152*80+.0722*130));});
+ it('PNG 保留透明 Alpha 資料',async()=>{const bytes=new Uint8Array(24);bytes.set([137,80,78,71,13,10,26,10]);const view=new DataView(bytes.buffer);view.setUint32(16,2);view.setUint32(20,1);vi.stubGlobal('createImageBitmap',vi.fn(async()=>({width:2,height:1,close:vi.fn()})));vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockReturnValue({drawImage:vi.fn(),getImageData:()=>({data:new Uint8ClampedArray([0,0,0,0,255,255,255,255])})} as unknown as CanvasRenderingContext2D);const im=await decodePhotograph(file(bytes,'alpha.png'));expect(im.format).toBe('PNG');expect(Array.from(imageBytes(im))).toEqual([0,0,255,255]);});
+ it('假圖片、過大 PNG 與損毀解碼會清楚回報',async()=>{await expect(decodePhotograph(file(new Uint8Array([1,2,3])))).rejects.toThrow(/不是有效/);const bytes=new Uint8Array(24);bytes.set([137,80,78,71,13,10,26,10]);new DataView(bytes.buffer).setUint32(16,999999);new DataView(bytes.buffer).setUint32(20,999999);await expect(decodePhotograph(file(bytes))).rejects.toThrow(/尺寸過大/);});
+});

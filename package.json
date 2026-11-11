@@ -1,0 +1,44 @@
+{
+  "name": "cmf-pattern-studio",
+  "version": "2.0.0-alpha.3",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "check:public": "node scripts/check-publication.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@node-projects/acad-ts": "^3.8.0",
+    "lucide-react": "^0.468.0",
+    "polygon-clipping": "^0.15.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "svgpath": "^2.6.0"
+  },
+  "devDependencies": {
+    "@mlightcad/libredwg-web": "^0.8.8",
+    "@playwright/test": "^1.65.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.10.0",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "dxf-parser": "^1.1.2",
+    "fake-indexeddb": "^6.2.8",
+    "jpeg-js": "^0.4.4",
+    "jsdom": "^26.0.0",
+    "pngjs": "^7.0.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-singlefile": "^2.3.4",
+    "vitest": "^3.0.0"
+  }
+}

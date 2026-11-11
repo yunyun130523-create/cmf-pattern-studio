@@ -1,0 +1,9 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { useHalftoneWorker } from '../src/halftone/useWorker';
+import { DEFAULTS, type Settings } from '../src/engine';
+import { HALFTONE_DEFAULTS, imageFromRGBA } from '../src/halftone/model';
+afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
+describe('連續滑桿節流與 Worker 合併',()=>{
+ it('運算期間顯示完成的中間預覽，只排入最新參數，不堆積滑桿事件',()=>{vi.useFakeTimers();const messages:any[]=[];let instance:ManualWorker;class ManualWorker{onmessage:((e:MessageEvent)=>void)|null=null;onerror=null;constructor(){instance=this;}terminate(){}postMessage(m:unknown){messages.push(m);}}vi.stubGlobal('Worker',ManualWorker);const image=imageFromRGBA(new Uint8Array([0,0,0,255]),1,1,{name:'black.png',format:'PNG'}),s:Settings={...DEFAULTS,halftone:{...HALFTONE_DEFAULTS,image,enabled:true}};const {result,rerender,unmount}=renderHook(({settings})=>useHalftoneWorker(settings),{initialProps:{settings:s}});act(()=>vi.advanceTimersByTime(40));expect(messages).toHaveLength(1);for(const brightness of [10,20,30])rerender({settings:{...s,halftone:{...s.halftone,brightness}}});expect(messages).toHaveLength(1);const packed={count:3,coordinates:new Float32Array(),offsets:new Uint32Array(),glyphEnds:new Uint32Array(),effectiveSpacingX:6,effectiveSpacingY:6,coverage:1,limited:false};act(()=>instance.onmessage!({data:{id:messages[0].id,kind:'preview',packed}} as MessageEvent));expect(result.current.packed?.count).toBe(3);expect(result.current.calculating).toBe(true);expect(messages).toHaveLength(2);expect(messages[1].settings.halftone.brightness).toBe(30);expect(messages[1].settings.halftone.image).toBeNull();act(()=>instance.onmessage!({data:{id:messages[1].id,kind:'preview',packed:{...packed,count:4}}} as MessageEvent));expect(result.current.calculating).toBe(false);expect(result.current.packed?.count).toBe(4);unmount();});
+});

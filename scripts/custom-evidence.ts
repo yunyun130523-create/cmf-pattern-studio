@@ -1,0 +1,24 @@
+import { writeFile, mkdir } from 'node:fs/promises';
+import { JSDOM } from 'jsdom';
+import { PNG } from 'pngjs';
+import { ACadVersion, CadDocument, DwgWriter, LwPolyline, LwPolylineVertex, XY, UnitsType } from '@node-projects/acad-ts';
+import { importSVG } from '../src/custom/svg';
+import { importDWG } from '../src/custom/dwg';
+import { traceRaster, defaultTraceOptions } from '../src/custom/png';
+import { DEFAULTS, projectJSON, svgDocument, morphOutlines, interpolateOutline } from '../src/engine';
+const dom=new JSDOM();Object.defineProperty(globalThis,'DOMParser',{value:dom.window.DOMParser});
+const base=new URL('../work/custom-examples/',import.meta.url);await mkdir(base,{recursive:true});
+const triangle='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><polygon points="20,0 40,40 0,40"/></svg>';
+await writeFile(new URL('triangle.svg',base),triangle);
+const hex='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><polygon points="10,0 30,0 40,20 30,40 10,40 0,20"/></svg>';
+await writeFile(new URL('hex-logo.svg',base),hex);
+const a=importSVG(hex,'六邊標誌'),b=importSVG(triangle,'三角標誌');
+const png=new PNG({width:128,height:128});for(let y=0;y<128;y++)for(let x=0;x<128;x++){const r=Math.hypot(x-64,y-64);png.data.set([0,0,0,r<50&&r>23?255:0],(y*128+x)*4);}await writeFile(new URL('transparent-logo.png',base),PNG.sync.write(png));
+const raster={width:128,height:128,data:new Uint8ClampedArray(png.data)};const logo=traceRaster(raster,defaultTraceOptions(raster),'環形 Logo');
+const doc=new CadDocument();doc.header!.version=ACadVersion.AC1015;doc.header!.insUnits=UnitsType.Millimeters;const poly=new LwPolyline([[0,0],[20,0],[20,10],[0,10]].map(([x,y])=>new LwPolylineVertex(new XY(x,y))));poly.isClosed=true;doc.modelSpace!.entities.add(poly);const dwg=DwgWriter.writeToBuffer(doc);await writeFile(new URL('closed-20x10-mm.dwg',base),dwg);const cad=importDWG(dwg.buffer.slice(dwg.byteOffset,dwg.byteOffset+dwg.byteLength) as ArrayBuffer,'20×10 mm CAD');
+const common={...DEFAULTS,width:600,height:400,shape:a.id,customShapes:[a,b,logo,cad],morph:false,spacingX:25,spacingY:25,minSize:3,maxSize:18};
+const demos={regular:{...common,minSize:15,maxSize:15},gradient:common,radial:{...common,mode:'radial' as const,start:{x:.5,y:.5},end:{x:.9,y:.5}},random:{...common,mode:'irregular' as const,jitter:75,randomRotation:90,randomSize:35,randomDensity:30},morph:{...common,targetShape:b.id,morph:true,minSize:18,maxSize:18}};
+for(const [name,settings] of Object.entries(demos)){await writeFile(new URL(name+'.json',base),projectJSON(settings));await writeFile(new URL(name+'.svg',base),svgDocument(settings));}
+const pair=morphOutlines(demos.morph),stages=[0,.25,.5,.75,1].map((t,i)=>`<g transform="translate(${95+i*170} 145)"><path d="M${interpolateOutline(...pair,t).map(p=>`${p.x*110},${p.y*110}`).join('L')}Z" fill="#29332f"/><text x="0" y="100" text-anchor="middle" fill="#1d1d1f" font-size="18">${t*100}%</text></g>`).join('');
+await writeFile(new URL('Custom-Shape-Morph-Verification.svg',base),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300" width="880" height="300"><rect width="880" height="300" fill="#F5F5F7" rx="16"/><g font-family="Arial,sans-serif"><text x="32" y="38" font-size="18" fill="#1d1d1f">CUSTOM SVG → CUSTOM SVG / VERTEX INTERPOLATION</text>${stages}</g></svg>`);
+dom.window.close();console.log('Custom SVG, transparent PNG, actual DWG, five vector patterns and JSON projects created.');

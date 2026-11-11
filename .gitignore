@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.tsbuildinfo
+work/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
+playwright-report/
+test-results/
+coverage/
+.DS_Store
+*.log
