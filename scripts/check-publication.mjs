@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 export const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const top=new Set(['.gitignore','package.json','package-lock.json','vite.config.ts','tsconfig.json','playwright.config.ts','index.html','README.md','ASSETS.md','LICENSE','THIRD_PARTY_NOTICES.txt','DEPLOYMENT.md','CUSTOM-SHAPES.md','IMAGE-HALFTONE.md','LIGHT-UI.md','SHAPE-MORPHING-FIX.md','TEST-REPORT.md','V2-STAGE1.md']);
+const top=new Set(['.gitignore','package.json','package-lock.json','vite.config.ts','tsconfig.json','playwright.config.ts','index.html','README.md','ASSETS.md','LICENSE','THIRD_PARTY_NOTICES.txt','DEPLOYMENT.md','CUSTOM-SHAPES.md','IMAGE-HALFTONE.md','LIGHT-UI.md','SHAPE-MORPHING-FIX.md','TEST-REPORT.md','V2-STAGE1.md','SHAPE-PROPORTIONS.md']);
 const directories=['src','public','tests','e2e','scripts','.github'];
 const extensions=new Set(['.ts','.tsx','.mjs','.js','.css','.html','.svg','.jpg','.jpeg','.png','.webp','.gif','.json','.md','.txt','.yml','.yaml']);
 const binary=new Set(['.jpg','.jpeg','.png','.webp','.gif']);

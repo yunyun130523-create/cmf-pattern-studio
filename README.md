@@ -14,6 +14,10 @@
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
 
+## 圖形比例調整 · 2.0.0-alpha.4（待部署）
+
+新增每種圖形的 X／Y 10%～300%、比例鎖定、0°～360° 旋轉、三角形底邊／頂點、六角形方向與矩形圓角；Morph 起始／結束可分別設定，JSON v5 完整保存。詳見 SHAPE-PROPORTIONS.md。此變更須先取得本次推送與部署確認。
+
 ## 圖片轉點陣 · 2.0.0-alpha.3
 
 左側新增「圖片轉點陣」：可上傳 JPG／PNG／DWG 或載入山巒 JPG 範例，調整圖片裁切、位置、明暗與幾何點陣。完整保留／稀疏模式、五種排列、自訂 SVG、HEX／RGB、透明背景、Canvas／Worker 預覽與真正向量 SVG 匯出。JSON v4 保存可重現結果所需的取樣與設定。詳見 IMAGE-HALFTONE.md 的操作、CAD 限制與測試範圍。

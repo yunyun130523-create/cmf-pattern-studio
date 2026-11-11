@@ -34,3 +34,12 @@ test('真正透明 PNG 上傳與高解析度透明 PNG 下載',async({page})=>{
  await page.getByRole('button',{name:'圖片轉點陣',exact:true}).click();await page.getByLabel('點陣來源圖片檔案').setInputFiles({name:'transparent-logo.png',mimeType:'image/png',buffer:PNG.sync.write(image)});await ready(page);await page.getByRole('checkbox',{name:'透明背景',exact:true}).check();await ready(page);
  const png=PNG.sync.read(await exportFile(page,'PNG'));expect(png.width).toBe(2400);expect(png.height).toBe(1600);let transparent=0,ink=0;for(let i=0;i<png.data.length;i+=64){if(png.data[i+3]===0)transparent++;if(png.data[i+3]>0&&png.data[i]<100)ink++;}expect(transparent).toBeGreaterThan(100);expect(ink).toBeGreaterThan(100);
 });
+
+test('圖形比例、圓角、獨立 Morph 端點與 SVG／PNG／JSON 保留',async({page})=>{
+ await page.getByRole('switch',{name:'啟用形狀漸變',exact:true}).click();await page.getByRole('button',{name:'正方形',exact:true}).click();await page.getByRole('switch',{name:'起始比例鎖定',exact:true}).click();await range(page,'起始X 比例',200);await range(page,'起始Y 比例',50);await range(page,'起始圖形旋轉',90);await range(page,'起始圓角半徑',30);
+ const svg=(await exportFile(page,'SVG')).toString('utf8');expect(svg).toContain('<path');expect(svg).not.toContain('<image');
+ const png=PNG.sync.read(await exportFile(page,'PNG'));expect(png.width).toBe(2400);expect(png.height).toBe(1600);
+ await page.getByRole('switch',{name:'啟用形狀漸變',exact:true}).click();await page.getByRole('switch',{name:'結束比例鎖定',exact:true}).click();await range(page,'結束X 比例',40);await range(page,'結束Y 比例',260);await range(page,'結束頂點水平位置',65);
+ const json=await exportFile(page,'JSON'),doc=JSON.parse(json.toString('utf8'));expect(doc.version).toBe(5);expect(doc.settings.proportions.start.square).toMatchObject({x:200,y:50,rotation:90,corner:30,locked:false});expect(doc.settings.proportions.end.triangle).toMatchObject({x:40,y:260,apexX:65});
+ await range(page,'起始X 比例',150);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'proportions.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'起始X 比例',exact:true})).toHaveValue('200');await expect(page.getByRole('slider',{name:'結束Y 比例',exact:true})).toHaveValue('260');
+});

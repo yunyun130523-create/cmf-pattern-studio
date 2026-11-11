@@ -1,3 +1,5 @@
+import { DEFAULT_PROPORTIONS, getProportion, neutralProportion, validateProportions, type ProportionSettings, type Endpoint } from './proportions/model';
+import { proportionalContours } from './proportions/geometry';
 import { HALFTONE_DEFAULTS, validateHalftone, type HalftoneSettings } from './halftone/model';
 import { generateHalftone } from './halftone/engine';
 import { bounds, compatibleOutlines, morphRestriction, validateCustomShape, MAX_SHAPES, type CustomShape } from './custom/geometry';
@@ -13,6 +15,7 @@ export type MorphDirection = 'horizontal' | 'vertical' | 'custom';
 export type RandomEnvelope = 'uniform' | 'directional' | 'radial';
 export type DensityMode = 'uniform' | 'directional' | 'radial';
 export interface Settings {
+  proportions: ProportionSettings;
   halftone: HalftoneSettings; transparentBackground:boolean;
   shape: Shape; targetShape: Shape; morph: boolean; morphAmount: number;
   width: number; height: number; spacingX: number; spacingY: number;
@@ -30,6 +33,7 @@ export interface Settings {
   customShapes: CustomShape[]; customScaleX: number; customScaleY: number; customAspectLock: boolean;
 }
 export const DEFAULTS: Settings = {
+  proportions: DEFAULT_PROPORTIONS,
   halftone: HALFTONE_DEFAULTS, transparentBackground:false,
   shape: 'circle', targetShape: 'triangle', morph: true, morphAmount: 100,
   width: 1200, height: 800, spacingX: 23, spacingY: 23,
@@ -155,10 +159,13 @@ export function outline(shape: BuiltinShape, aspect: number, steps = MORPH_VERTE
 }
 export function isCustom(shape:Shape):shape is `custom:${string}`{return shape.startsWith('custom:');}
 export function shapeName(shape:Shape,library:CustomShape[]=[]):string{return isCustom(shape)?library.find(s=>s.id===shape)?.name??'自訂圖案':SHAPE_NAMES[shape];}
-export function shapeContours(shape:Shape,s:Settings):Point[][]{
-  if(!isCustom(shape))return[outline(shape,s.aspect)];
-  const custom=s.customShapes.find(c=>c.id===shape);if(!custom)throw new Error('找不到自訂圖案的幾何資料，請重新載入專案。');
-  return custom.contours.map(c=>c.map(p=>({x:p.x*s.customScaleX,y:p.y*s.customScaleY})));
+export function hasShapeProportions(s:Settings,endpoint:Endpoint='start'):boolean{const shape=endpoint==='start'?s.shape:s.targetShape;return !neutralProportion(getProportion(s.proportions,shape,endpoint),shape);}
+export function fastCircle(s:Settings):boolean{return s.shape==='circle'&&!s.morph&&!hasShapeProportions(s);}
+export function shapeContours(shape:Shape,s:Settings,endpoint:Endpoint='start'):Point[][]{
+  let contours:Point[][];
+  if(!isCustom(shape))contours=[outline(shape,s.aspect)];
+  else{const custom=s.customShapes.find(c=>c.id===shape);if(!custom)throw new Error('找不到自訂圖案的幾何資料，請重新載入專案。');contours=custom.contours.map(c=>c.map(p=>({x:p.x*s.customScaleX,y:p.y*s.customScaleY})));}
+  const p=getProportion(s.proportions,shape,endpoint);return neutralProportion(p,shape)?contours:proportionalContours(contours,shape,s.aspect,p);
 }
 export function morphIssue(s:Settings):string|null{
   for(const ref of [s.shape,s.targetShape])if(isCustom(ref)){
@@ -167,8 +174,8 @@ export function morphIssue(s:Settings):string|null{
 }
 export function morphOutlines(s:Settings):[Point[],Point[]]{
   const reason=morphIssue(s);if(reason)throw new Error(reason);
-  const from=shapeContours(s.shape,s)[0],to=shapeContours(s.targetShape,s)[0];
-  return isCustom(s.shape)||isCustom(s.targetShape)?compatibleOutlines(from,to):[from,to];
+  const from=shapeContours(s.shape,s)[0],to=shapeContours(s.targetShape,s,'end')[0];
+  return isCustom(s.shape)||isCustom(s.targetShape)||hasShapeProportions(s)||hasShapeProportions(s,'end')?compatibleOutlines(from,to):[from,to];
 }
 export function customDimensions(s:Settings){
   const contours=shapeContours(s.shape,s),b=bounds(contours),base=s.halftone.enabled&&s.halftone.image?s.halftone.maxSize:s.endpointSize?Math.max(s.sizeStart,s.sizeEnd):s.maxSize;
@@ -208,7 +215,7 @@ export function generatePattern(s: Settings): Pattern {
   // Consistent safety cap shared by preview and all exports, never export a different pattern.
   const factor=Math.max(1,Math.sqrt(estimated/cap));
   const sx=s.spacingX*factor, sy=s.spacingY*factor;
-  const custom=isCustom(s.shape)||(s.morph&&isCustom(s.targetShape));
+  const custom=isCustom(s.shape)||(s.morph&&isCustom(s.targetShape))||hasShapeProportions(s)||(s.morph&&hasShapeProportions(s,'end'));
   const extent=custom?Math.max(...(pair?[...pair[0],...pair[1]]:source.flat()).map(p=>Math.hypot(p.x,p.y))):.72;
   const glyphs: Glyph[]=[];
   let area=0;
@@ -237,16 +244,16 @@ export function generatePattern(s: Settings): Pattern {
   return {glyphs,effectiveSpacingX:sx,effectiveSpacingY:sy,limited:factor>1,coverage:area/(s.width*s.height)*100};
 }
 export function svgDocument(s: Settings, p = generatePattern(s)): string {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${s.width}" height="${s.height}" viewBox="0 0 ${s.width} ${s.height}"><title>CMF Pattern Studio — Seed ${s.seed}</title>${s.transparentBackground?'':`<rect width="100%" height="100%" fill="${s.background}"/>`}<g fill="${s.foreground}" fill-rule="evenodd" opacity="${s.opacity/100}">${p.glyphs.map(g=>s.halftone.enabled&&s.halftone.image&&s.shape==='circle'&&!s.morph?`<circle cx="${g.x}" cy="${g.y}" r="${g.size/2}"/>`:`<path d="${g.d}"/>`).join('')}</g></svg>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${s.width}" height="${s.height}" viewBox="0 0 ${s.width} ${s.height}"><title>CMF Pattern Studio — Seed ${s.seed}</title>${s.transparentBackground?'':`<rect width="100%" height="100%" fill="${s.background}"/>`}<g fill="${s.foreground}" fill-rule="evenodd" opacity="${s.opacity/100}">${p.glyphs.map(g=>s.halftone.enabled&&s.halftone.image&&fastCircle(s)?`<circle cx="${g.x}" cy="${g.y}" r="${g.size/2}"/>`:`<path d="${g.d}"/>`).join('')}</g></svg>`;
 }
-export function projectJSON(s: Settings) { return JSON.stringify({app:'cmf-pattern-studio',version:4,settings:s},null,2); }
+export function projectJSON(s: Settings) { return JSON.stringify({app:'cmf-pattern-studio',version:5,settings:s},null,2); }
 const V2_LIMITS: Partial<Record<keyof Settings,[number,number]>> = {morphRangeStart:[0,100],morphRangeEnd:[0,100],sizeStart:[.1,40],sizeEnd:[.1,40],rotationStart:[-180,180],rotationEnd:[-180,180],randomness:[0,100],randomRotation:[0,180],randomSize:[0,100],randomDensity:[0,100],radius:[.02,20],densityStart:[0,100],densityEnd:[0,100],densityAngle:[-180,180]};
 const LIMITS: Partial<Record<keyof Settings,[number,number]>> = {width:[200,2400],height:[200,1800],spacingX:[7,80],spacingY:[7,80],minSize:[0,40],maxSize:[.1,40],density:[0,100],rotation:[-180,180],aspect:[1,5],morphAmount:[0,100],falloff:[.2,4],jitter:[0,100],noiseScale:[1,20],seed:[0,2147483647],opacity:[0,100]};
 export function parseProject(text: string): Settings {
   const doc=JSON.parse(text);
-  if(!doc || doc.app!=='cmf-pattern-studio' || ![1,2,3,4].includes(doc.version) || !doc.settings) throw new Error('請選擇本工作台匯出的 JSON 專案檔。');
+  if(!doc || doc.app!=='cmf-pattern-studio' || ![1,2,3,4,5].includes(doc.version) || !doc.settings) throw new Error('請選擇本工作台匯出的 JSON 專案檔。');
   const raw=doc.settings, result={...DEFAULTS};
-  if(doc.version===4){result.halftone=validateHalftone(raw.halftone);if(typeof raw.transparentBackground!=='boolean')throw new Error('透明背景參數無效。');result.transparentBackground=raw.transparentBackground;}
+  if(doc.version>=4){result.halftone=validateHalftone(raw.halftone);if(typeof raw.transparentBackground!=='boolean')throw new Error('透明背景參數無效。');result.transparentBackground=raw.transparentBackground;}
   if(doc.version>=3){
     if(!Array.isArray(raw.customShapes)||raw.customShapes.length>MAX_SHAPES)throw new Error('自訂圖案庫格式或數量錯誤。');
     result.customShapes=raw.customShapes.map(validateCustomShape);
@@ -254,6 +261,7 @@ export function parseProject(text: string): Settings {
     for(const k of ['customScaleX','customScaleY'] as const){if(typeof raw[k]!=='number'||!Number.isFinite(raw[k])||raw[k]<.001||raw[k]>1000)throw new Error('自訂圖案縮放參數錯誤。');result[k]=raw[k];}
     if(typeof raw.customAspectLock!=='boolean')throw new Error('等比例參數錯誤。');result.customAspectLock=raw.customAspectLock;
   }
+  if(doc.version===5)result.proportions=validateProportions(raw.proportions,[...SHAPES,...result.customShapes.map(c=>c.id)]);
   for(const key of Object.keys(LIMITS) as (keyof Settings)[]) {
     if(typeof raw[key]!=='number' || !Number.isFinite(raw[key])) throw new Error('參數格式錯誤：'+key);
     const [lo,hi]=LIMITS[key]!;
