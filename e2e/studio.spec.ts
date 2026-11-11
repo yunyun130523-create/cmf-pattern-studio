@@ -10,7 +10,7 @@ async function exportFile(page:Page,format:'SVG'|'PNG'|'JSON'){
  const dialog=page.getByRole('dialog',{name:'匯出設計'});if(format==='JSON')await dialog.getByRole('button',{name:'JSON',exact:true}).click();
  const [download]=await Promise.all([page.waitForEvent('download'),dialog.getByRole('button',{name:'下載 '+format,exact:true}).click()]);return downloaded(download);
 }
-test.beforeEach(async({page})=>{await page.goto('./');await expect(page.getByTestId('pattern-canvas')).toBeVisible();});
+test.beforeEach(async({page})=>{page.on('pageerror',error=>console.log('Browser page error:',error.message));await page.goto('./');await expect(page.getByTestId('pattern-canvas')).toBeVisible();});
 
 test('桌面／手機載入、幾何生成與原生滑桿操作',async({page})=>{
  await expect.poll(()=>page.getByTestId('pattern-glyphs').locator('path').count()).toBeGreaterThan(1000);
@@ -22,7 +22,7 @@ test('桌面／手機載入、幾何生成與原生滑桿操作',async({page})=>
 
 test('真正 JPG 上傳、Worker／Canvas、尺寸／密度／對比、SVG 與 JSON 還原',async({page})=>{
  await page.getByRole('button',{name:'圖片轉點陣',exact:true}).click();await page.getByLabel('點陣來源圖片檔案').setInputFiles('src/halftone/mountain.jpg');await ready(page);
- const painted=await page.getByTestId('halftone-canvas').evaluate((node:HTMLCanvasElement)=>{const ctx=node.getContext('2d')!,rgba=ctx.getImageData(0,0,node.width,node.height).data;let dark=0;for(let i=0;i<rgba.length;i+=64)if(rgba[i]<100&&rgba[i+3]>0)dark++;return dark;});expect(painted).toBeGreaterThan(100);
+ await expect.poll(()=>page.getByTestId('halftone-canvas').evaluate((node:HTMLCanvasElement)=>{const ctx=node.getContext('2d')!,rgba=ctx.getImageData(0,0,node.width,node.height).data;let dark=0;for(let i=0;i<rgba.length;i+=64)if(rgba[i]<100&&rgba[i+3]>0)dark++;return dark;}),{timeout:10000,message:'等待 Canvas 完成實際像素繪製'}).toBeGreaterThan(100);
  await range(page,'最大點尺寸',4);await range(page,'點陣密度',80);await range(page,'圖片對比',1.65);await page.getByLabel('圖片轉換模式',{exact:true}).selectOption('sparse');await page.getByLabel('點陣形狀',{exact:true}).selectOption('triangle');await ready(page);
  const svg=(await exportFile(page,'SVG')).toString('utf8');expect((svg.match(/<path\b/g)??[]).length).toBeGreaterThan(1000);expect(svg).not.toMatch(/<image\b|data:image|<filter\b/);
  const json=await exportFile(page,'JSON');const project=JSON.parse(json.toString('utf8'));expect(project.settings.halftone.image.format).toBe('JPEG');expect(project.settings.halftone.image.pixels.length).toBeGreaterThan(1000);expect(project.settings.shape).toBe('triangle');
