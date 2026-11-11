@@ -4,7 +4,9 @@
 
 ## GitHub Pages 自動部署
 
-現有網站可由 GitHub Pages 免費託管。.github/workflows/pages.yml 已準備 main 更新後的檢查、建置、桌面／手機瀏覽器驗收與自動發布。首次公開與發布需由專案擁有者確認；目前預定位置及完整狀態見 DEPLOYMENT.md。
+正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
+
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。184 項原有測試與 9 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
