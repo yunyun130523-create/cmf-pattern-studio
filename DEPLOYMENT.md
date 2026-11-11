@@ -6,7 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 已確認的結果
+## 圖形比例版本的最新驗證
+
+版本 2.0.0-alpha.4：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42981477694
+
+- 已取得本次推送與部署確認，完成圖形比例功能發布。
+- 221 項測試與 12 項桌面／手機尺寸瀏覽器驗收全部通過。
+- SVG／PNG／JSON 比例保留與不同 Morph 端點驗收通過。
+- 正式 HTTPS 網址回應 HTTP 200，HTML 與本機建置完全一致，SHA256 為 0fa0f1c59e772c02e43d59e6bef706fbaeae4b707d34a661a6951b3c676dd1b7。
+- 圖片亮度取樣、漸變場及排列演算法保留；新增比例在共用形狀輪廓處套用。
+
+## 首次上線的歷史結果
 
 - 使用者已明確同意公開發布，並完成 Repository、GitHub Connector 與 Pages 授權設定。
 - GitHub Pages Source 為 GitHub Actions，HTTPS 已啟用；正式網址回應 HTTP 200。

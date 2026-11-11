@@ -36,6 +36,8 @@ JSON 升為 v5，保存來源／目標的各圖形比例、鎖定、旋轉、三
 
 GitHub Pages 的 Playwright 驗收新增比例、圓角、不同 Morph 端點及 SVG／PNG／JSON 的完整操作，會與既有三種瀏覽器設定一同執行。
 
-此開發環境未提供 cua_repl.js，依受管理預覽規範未啟動替代瀏覽器。原生瀏覽器驗收需在取得本次推送／部署確認後由既有 GitHub Actions 執行；本機 DOM／幾何測試不冒稱為實機驗收。目前正式網址仍為上一版，尚未推送或部署此次變更。
+本次已取得推送／部署確認，並由既有 GitHub Actions 的真實 Chromium／WebKit 執行驗收，12 項全部通過。桌面、Pixel 7 與 iPhone 13 使用瀏覽器／尺寸模擬，不等同實體手機硬體測試。正式網址已更新至此版本。
 
-本機最終結果：221 項測試通過、0 項失敗（184 項既有與 37 項新增），TypeScript、正式建置與公開檔案掃描通過。Playwright 共收集 12 項，尚待 GitHub Actions 執行。
+本機最終結果：221 項測試通過、0 項失敗（184 項既有與 37 項新增），TypeScript、正式建置與公開檔案掃描通過。Playwright 12 項已在 GitHub Actions 通過。正式網站 HTTP 200，HTML 與測試建置逐位元組相同。
+
+成功紀錄：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42981477694
