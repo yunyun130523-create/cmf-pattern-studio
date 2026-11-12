@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。246 項測試與 15 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。252 項測試與 18 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 上傳漸變範圍 · 2.0.0-alpha.7（已發布）
+
+「色彩與畫布」移至第一個分頁，新增範圍 PNG／JPG／SVG 上傳與拖放。透明圖依 Alpha、黑白圖依深色區域辨識，保留凹形與孔洞。SVG 僅讀取安全封閉幾何，轉為取樣遮罩，不執行原 SVG。
+
+可選輪廓邊緣向內漸變，或保留既有漸變方向並限制範圍。支援閾值、反轉、漸變寬度、等比例／填滿、縮放與位置。範圍外不生成圖案，邊界採 512 px 最長邊的距離場近似並保守容納完整圖案；極細區域可能沒有圖案。原有圖片點陣及帶入咬花的 Pattern 共用限制。匯出圖案為真正幾何，JSON v6 保存範圍取樣與參數；舊檔案預設停用範圍。範圍識別不等同原生 CAD 精確裁切。
 
 ## Pattern 區域紋理 · 2.0.0-alpha.6（已發布）
 
@@ -81,7 +87,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 TypeScript 檢查與 Vite 正式建置、自動幾何測試、React DOM 互動測試、JSON／SVG／DXF 檔案驗證、DWG 寫入及兩個讀取器的驗證，以及正式 HTML 在模擬 DOM 的啟動測試。
 
-GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 15 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
+GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 18 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
 
 ## 第二階段擴充
 

@@ -6,7 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## Pattern 紋理版本的最新驗證
+## 漸變範圍版本的最新驗證
+
+版本 2.0.0-alpha.7：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43190722442
+
+- 252 項測試、18 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- PNG 與 SVG 範圍上傳、實際輪廓漸變、向量 SVG 輸出與 JSON 幾何還原通過。
+- 本機驗證包含透明孔洞、反轉、移動、縮放、閾值、圖片點陣與邊界容納。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：aada328fc6fc62a7c96e0e796fa6288f13f4e7df448c23d189f53f779c418136。
+
+## Pattern 紋理版本的歷史驗證
 
 版本 2.0.0-alpha.6：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43141475925
 
