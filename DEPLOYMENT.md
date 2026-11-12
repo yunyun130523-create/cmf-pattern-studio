@@ -6,7 +6,15 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 咬花材質版本的最新驗證
+## Pattern 紋理版本的最新驗證
+
+版本 2.0.0-alpha.6：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43141475925
+
+- 246 項測試、15 項桌面 Chromium／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 高光平面與髮絲方向性高度、獨立 Pattern 紋理、專用圖片上傳、四種貼圖及 JSON 還原驗證通過。
+- 正式網站 HTTP 200，HTML 與本機已測建置逐位元組一致，SHA256：a08d4ecdeaf81dd3d808299d55e3672d553bf1484c38e476203bc0d569300bfe。
+
+## 咬花材質版本的歷史驗證
 
 版本 2.0.0-alpha.5：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43138420598
 
