@@ -6,7 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 圖形比例版本的最新驗證
+## 咬花材質版本的最新驗證
+
+版本 2.0.0-alpha.5：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43138420598
+
+- 已取得推送與部署確認，完成咬花功能發布。
+- 242 項測試與 15 項桌面／手機尺寸瀏覽器驗收全部通過。
+- 咬花像素、參數、Pattern 凹刻、高度／法線／粗糙度 PNG 與 JSON 還原通過。
+- 正式網站 HTTP 200，HTML 與本機建置逐位元組一致，SHA256：df93b52ee9fce6ea04155641fd7821e1589f36d08914d9890ad77deacfbca1a3。
+- 保留原圖案演算法，咬花以獨立 Worker 產生材質與資料貼圖。
+
+## 圖形比例版本的歷史驗證
 
 版本 2.0.0-alpha.4：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42981477694
 

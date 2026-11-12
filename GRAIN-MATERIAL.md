@@ -1,6 +1,6 @@
 # 咬花材質 · 2.0.0-alpha.5
 
-在現有網站新增「咬花材質」頁籤，保留原圖案、Morph、比例、圖片點陣、漸變與既有輸出。此版本先於本機實作及驗證，尚待使用者確認推送／部署。
+在現有網站新增「咬花材質」頁籤，保留原圖案、Morph、比例、圖片點陣、漸變與既有輸出。已取得使用者確認，並於 GitHub Pages 正式發布。
 
 ## 可操作功能
 
@@ -54,6 +54,8 @@ src/grain/engine.ts 產生週期高度場；圖案使用真正輪廓逐掃描線
 
 另以真正 Node worker_threads 驗證四通道傳輸、來源快取與不同尺寸輸出；DOM 操作測試使用 Canvas／Worker／PNG 編碼替身。既有全部回歸測試一併執行。
 
-GitHub Actions 新增真實瀏覽器驗收，驗證 Canvas 有實際材質像素、參數控制、Pattern 凹刻、三種資料貼圖 PNG 下載及 JSON 還原。此環境沒有 cua_repl.js，不啟動替代瀏覽器；原生瀏覽器測試需在取得本次推送確認後由 GitHub 執行，尚未宣稱此次版本通過原生瀏覽器驗收。
+GitHub Actions 真實瀏覽器驗收已通過，驗證 Canvas 有實際材質像素、參數控制、Pattern 凹刻、三種資料貼圖 PNG 下載及 JSON 還原。使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit，屬於手機尺寸模擬而非實體手機測試。
 
-本機驗證結果：242 項測試全部通過（221 項既有＋21 項新增），TypeScript、正式建置與公開檔案掃描通過。Playwright 已收集 15 項，尚待本次推送確認後執行。
+242 項測試（221 項既有＋21 項新增）與 15 項跨瀏覽器驗收全部通過；TypeScript、正式建置與公開檔案掃描通過。正式 HTTPS HTML 與已測試的本機建置逐位元組一致。
+
+測試與發布紀錄：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43138420598

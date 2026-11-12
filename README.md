@@ -6,7 +6,7 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。221 項測試與 12 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。242 項測試與 15 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
@@ -14,9 +14,9 @@
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
 
-## 咬花材質 · 2.0.0-alpha.5（待部署）
+## 咬花材質 · 2.0.0-alpha.5（已發布）
 
-新增皮紋／細咬花／粗咬花、JPG／PNG 自訂高度紋理、大小／深度／光澤與 Pattern 浮雕、凹刻、局部咬花及光澤差異。可預覽與下載材質／高度／法線／粗糙度貼圖，JSON v6 保存完整資料。詳見 GRAIN-MATERIAL.md；待本次確認後推送與部署。
+新增皮紋／細咬花／粗咬花、JPG／PNG 自訂高度紋理、大小／深度／光澤與 Pattern 浮雕、凹刻、局部咬花及光澤差異。可預覽與下載材質／高度／法線／粗糙度貼圖，JSON v6 保存完整資料。詳見 GRAIN-MATERIAL.md；已通過 GitHub Actions 測試並發布。
 
 ## 圖形比例調整 · 2.0.0-alpha.4
 
@@ -77,7 +77,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 TypeScript 檢查與 Vite 正式建置、自動幾何測試、React DOM 互動測試、JSON／SVG／DXF 檔案驗證、DWG 寫入及兩個讀取器的驗證，以及正式 HTML 在模擬 DOM 的啟動測試。
 
-目前執行環境未提供 `cua_repl.js` 瀏覽器控制工具，依 Sites 的受管理預覽規範，未另行啟動替代瀏覽器或伺服器。因此尚未進行真實 Chrome／Edge 視覺驗收；PNG 瀏覽器點陣化、作業系統下載、原生選色器與全螢幕仍需真實瀏覽器確認。互動測試中的 PNG 點陣化與 Web Worker 啟動採用替身；DWG 真實產出另有獨立讀回測試。
+GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 15 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
 
 ## 第二階段擴充
 
