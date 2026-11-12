@@ -1,0 +1,5 @@
+import { useEffect, useRef } from 'react';
+import type { GrainSettings } from './model';
+import type { GrainRender } from './engine';
+export function grainPixels(r:GrainRender,channel:GrainSettings['channel']){return channel==='height'?r.heightMap:channel==='normal'?r.normal:channel==='roughness'?r.roughness:r.color;}
+export function GrainCanvas({result,settings:g}:{result:GrainRender|null;settings:GrainSettings}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const c=ref.current;if(!c||!result)return;const source=document.createElement('canvas');source.width=result.width;source.height=result.height;const sc=source.getContext('2d');if(!sc)return;const data=sc.createImageData(result.width,result.height);data.data.set(grainPixels(result,g.channel));sc.putImageData(data,0,0);c.width=result.width;c.height=result.height;const ctx=c.getContext('2d');if(!ctx)return;for(let y=0;y<g.tiles;y++)for(let x=0;x<g.tiles;x++)ctx.drawImage(source,x*c.width/g.tiles,y*c.height/g.tiles,c.width/g.tiles,c.height/g.tiles);},[result,g.channel,g.tiles]);return <canvas ref={ref} className="grain-canvas" data-testid="grain-canvas" aria-label="咬花材質即時預覽" role="img"/>;}

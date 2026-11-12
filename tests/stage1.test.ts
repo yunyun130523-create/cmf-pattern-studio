@@ -101,7 +101,7 @@ describe('第一階段：控制點與儲存',()=>{
   });
   it('拒絕無效 v2 參數與未來格式',()=>{
     const doc=JSON.parse(projectJSON(base));doc.settings.randomSize=1000;expect(()=>parseProject(JSON.stringify(doc))).toThrow();
-    doc.version=6;expect(()=>parseProject(JSON.stringify(doc))).toThrow();
+    doc.version=7;expect(()=>parseProject(JSON.stringify(doc))).toThrow();
   });
   it('舊版寬畫布的超出畫布半徑可完整遷移',()=>{
     const doc=JSON.parse(projectJSON({...base,width:2400,height:200,mode:'radial',start:{x:.5,y:.5},end:{x:1,y:.5}}));doc.version=1;delete doc.settings.center;delete doc.settings.radius;

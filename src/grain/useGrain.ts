@@ -1,0 +1,21 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import GrainWorker from './worker?worker&inline';
+import type { Settings } from '../engine';
+import type { SampleImage } from '../halftone/model';
+import type { GrainRender } from './engine';
+export function useGrain(s:Settings){
+ const worker=useRef<Worker|null>(null),busy=useRef(false),queue=useRef<Settings|null>(null),timer=useRef<ReturnType<typeof setTimeout>|null>(null),sequence=useRef(0),latest=useRef(0),revision=useRef(0),geometry=useRef(s),photo=useRef<SampleImage|null>(null),texture=useRef<SampleImage|null>(null),pending=useRef(new Map<number,{resolve:(r:GrainRender)=>void;reject:(e:Error)=>void;timer:ReturnType<typeof setTimeout>}>());
+ const lastInput=useRef<Settings|null>(null);
+ const [result,setResult]=useState<GrainRender|null>(null),[calculating,setCalculating]=useState(false),[error,setError]=useState('');
+ const send=useCallback((value:Settings,kind:'preview'|'export',width:number,height:number,id:number)=>{if(!worker.current)throw new Error('咬花背景處理器尚未就緒。');const changed=(Object.keys(value) as (keyof Settings)[]).some(k=>k!=='grain'&&!Object.is(value[k],geometry.current[k]));if(changed){geometry.current=value;revision.current++;}
+ const im=value.halftone.image,tex=value.grain.image;worker.current.postMessage({id,kind,revision:revision.current,width,height,photoId:im?.id,textureId:tex?.id,settings:{...value,halftone:{...value.halftone,image:photo.current!==im?im:null},grain:{...value.grain,image:texture.current!==tex?tex:null}}});photo.current=im;texture.current=tex;},[]);
+ const submit=useCallback((value:Settings)=>{const scale=Math.min(1,640/Math.max(value.width,value.height));busy.current=true;const id=++sequence.current;latest.current=id;send(value,'preview',Math.max(1,Math.round(value.width*scale)),Math.max(1,Math.round(value.height*scale)),id);},[send]);
+ useEffect(()=>{if(!s.grain.enabled){setResult(null);setCalculating(false);return;}let w:Worker;try{w=new GrainWorker();worker.current=w;photo.current=null;texture.current=null;lastInput.current=null;}catch{setError('無法啟動咬花背景運算，請以 Chrome／Edge 開啟。');return;}
+ w.onmessage=e=>{const {id,result:r,error:err}=e.data,p=pending.current.get(id);if(p){clearTimeout(p.timer);pending.current.delete(id);if(err)p.reject(new Error(err));else p.resolve(r);return;}busy.current=false;if(id===latest.current){if(err)setError(err);else{setResult(r);setError('');}}const next=queue.current;queue.current=null;if(next){submit(next);setCalculating(true);}else setCalculating(false);};
+ w.onerror=()=>{setError('咬花運算失敗，請關閉後重新啟用或降低輸出尺寸。');busy.current=false;queue.current=null;setCalculating(false);for(const p of pending.current.values()){clearTimeout(p.timer);p.reject(new Error('咬花運算中斷。'));}pending.current.clear();};
+ return()=>{w.terminate();worker.current=null;busy.current=false;queue.current=null;if(timer.current){clearTimeout(timer.current);timer.current=null;}for(const p of pending.current.values()){clearTimeout(p.timer);p.reject(new Error('咬花模式已關閉。'));}pending.current.clear();};
+ },[s.grain.enabled,submit]);
+ useEffect(()=>{if(!s.grain.enabled||!worker.current)return;const old=lastInput.current;const displayOnly=old&&(Object.keys(s) as (keyof Settings)[]).every(k=>k==='grain'||Object.is(s[k],old[k]))&&(Object.keys(s.grain) as (keyof Settings['grain'])[]).every(k=>['tiles','channel','exportSize','dpi'].includes(k)||Object.is(s.grain[k],old.grain[k]));lastInput.current=s;if(displayOnly)return;queue.current=s;setCalculating(true);if(!busy.current&&timer.current===null)timer.current=setTimeout(()=>{timer.current=null;const next=queue.current;queue.current=null;if(next)submit(next);},50);},[s,submit]);
+ const exportRender=useCallback((value:Settings)=>new Promise<GrainRender>((resolve,reject)=>{const id=++sequence.current,scale=value.grain.exportSize/Math.max(value.width,value.height),timeout=setTimeout(()=>{pending.current.delete(id);reject(new Error('材質輸出逾時，請降低輸出尺寸。'));},90000);pending.current.set(id,{resolve,reject,timer:timeout});try{send(value,'export',Math.max(1,Math.round(value.width*scale)),Math.max(1,Math.round(value.height*scale)),id);}catch(e){clearTimeout(timeout);pending.current.delete(id);reject(e);}}),[send]);
+ return{result,calculating,error,exportRender};
+}
