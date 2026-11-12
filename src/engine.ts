@@ -1,3 +1,5 @@
+import { MASK_DEFAULTS, validateMask, type RangeMask } from './mask/model';
+import { rangeSampler } from './mask/engine';
 import { GRAIN_DEFAULTS, validateGrain, type GrainSettings } from './grain/model';
 import { DEFAULT_PROPORTIONS, getProportion, neutralProportion, validateProportions, type ProportionSettings, type Endpoint } from './proportions/model';
 import { proportionalContours } from './proportions/geometry';
@@ -16,6 +18,7 @@ export type MorphDirection = 'horizontal' | 'vertical' | 'custom';
 export type RandomEnvelope = 'uniform' | 'directional' | 'radial';
 export type DensityMode = 'uniform' | 'directional' | 'radial';
 export interface Settings {
+  rangeMask: RangeMask;
   grain: GrainSettings;
   proportions: ProportionSettings;
   halftone: HalftoneSettings; transparentBackground:boolean;
@@ -35,6 +38,7 @@ export interface Settings {
   customShapes: CustomShape[]; customScaleX: number; customScaleY: number; customAspectLock: boolean;
 }
 export const DEFAULTS: Settings = {
+  rangeMask: MASK_DEFAULTS,
   grain: GRAIN_DEFAULTS,
   proportions: DEFAULT_PROPORTIONS,
   halftone: HALFTONE_DEFAULTS, transparentBackground:false,
@@ -105,6 +109,7 @@ export function fieldValue(x: number, y: number, s: Settings): number {
   let t = ((x-ax)*dx+(y-ay)*dy)/length2;
   if (s.mode === 'radial') t = 1 - radialDistance(x,y,s);
   if (s.mode === 'irregular') {const linear=clamp(t);t=linear+(.25*linear+.75*noise(x/s.width*s.noiseScale,y/s.width*s.noiseScale,s.seed)-linear)*s.randomness/100;}
+  if(s.rangeMask.enabled&&s.rangeMask.image&&s.rangeMask.gradient==='boundary')t=rangeSampler(s.rangeMask,s.width,s.height)(x,y).t;
   t = Math.pow(clamp(t), s.falloff);
   return s.reverse ? 1-t : t;
 }
@@ -229,10 +234,13 @@ export function generatePattern(s: Settings): Pattern {
       if(hash(col,row,s.seed)>=densityProbability(x,y,s,weight)) continue;
       const gx=x+(hash(col,row,s.seed+1)-.5)*sx*s.jitter/100*weight;
       const gy=y+(hash(col,row,s.seed+2)-.5)*sy*s.jitter/100*weight;
+      const maskSample=s.rangeMask.enabled&&s.rangeMask.image?rangeSampler(s.rangeMask,s.width,s.height)(gx,gy):null;
+      if(maskSample&&maskSample.distance<=0)continue;
       const t=fieldValue(gx,gy,s);
       const baseSize=s.endpointSize?s.sizeStart+(s.sizeEnd-s.sizeStart)*t:s.minSize+(s.maxSize-s.minSize)*t;
       const size=baseSize*(1+(hash(col,row,s.seed+3)*2-1)*s.randomSize/100*weight);
       if(size<.05 || gx-size*extent<0 || gy-size*extent<0 || gx+size*extent>s.width || gy+size*extent>s.height) continue;
+      if(maskSample&&maskSample.distance<size*extent)continue;
       const progress=morphValue(gx,s,sx,gy,sy),m=s.morph?progress:0;
       const rotation=s.rotation+(s.rotationGradient?s.rotationStart+(s.rotationEnd-s.rotationStart)*progress:0)+(hash(col,row,s.seed+4)*2-1)*s.randomRotation*weight;
       const a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
@@ -299,6 +307,7 @@ export function parseProject(text: string): Settings {
     result.center={...result.start};result.radius=clamp(Math.hypot((result.end.x-result.start.x)*result.width,(result.end.y-result.start.y)*result.height)/Math.min(result.width,result.height),.02,20);
   }
   if(result.morph&&morphIssue(result))throw new Error('此專案的自訂輪廓無法安全變形，請先關閉 Morph 後再儲存。');
+  result.rangeMask=raw.rangeMask===undefined?{...MASK_DEFAULTS}:validateMask(raw.rangeMask);
   return result;
 }
 export function presetSettings(preset: Preset): Settings {

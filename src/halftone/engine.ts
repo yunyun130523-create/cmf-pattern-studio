@@ -1,3 +1,4 @@
+import { rangeSampler } from '../mask/engine';
 import { fastCircle, clamp, fieldValue, hash, interpolateOutline, morphOutlines, morphValue, shapeContours, type Pattern, type Point, type Settings } from '../engine';
 import { imageBytes, type HalftoneSettings, type SampleImage } from './model';
 import { signedArea } from '../custom/geometry';
@@ -26,8 +27,10 @@ export function generateHalftone(s:Settings,compactCircles=false):Pattern{
  const extent=Math.max(...(pair?[...pair[0],...pair[1]]:source.flat()).map(p=>Math.hypot(p.x,p.y)));
  for(let row=0,y=dy/2;y<s.height;row++,y+=dy)for(let col=0,x=dx/2+(h.layout==='stagger'||h.layout==='hex'?row%2*dx/2:0);x<s.width;col++,x+=dx){
  const jitter=h.jitter,gx=x+(hash(col,row,s.seed+21)-.5)*dx*jitter/100,gy=y+(hash(col,row,s.seed+22)-.5)*dy*jitter/100,d=sample(gx,gy);if(d===null||h.skipWhite&&d<=1-h.whiteThreshold/255)continue;
- const field=h.layout==='gradient'?fieldValue(gx,gy,s):1;if(h.mode==='sparse'&&hash(col,row,s.seed+23)>=d*field)continue;
+ const maskSample=s.rangeMask.enabled&&s.rangeMask.image?rangeSampler(s.rangeMask,s.width,s.height)(gx,gy):null;if(maskSample&&maskSample.distance<=0)continue;
+ const field=h.layout==='gradient'||s.rangeMask.enabled&&s.rangeMask.gradient==='boundary'?fieldValue(gx,gy,s):1;if(h.mode==='sparse'&&hash(col,row,s.seed+23)>=d*field)continue;
  const size=(h.minSize+(h.maxSize-h.minSize)*Math.sqrt(Math.max(0,d)))*(1+(hash(col,row,s.seed+24)*2-1)*h.randomSize/100)*field;
+ if(maskSample&&maskSample.distance<size*extent)continue;
  if(size<.05||gx-size*extent<0||gy-size*extent<0||gx+size*extent>s.width||gy+size*extent>s.height)continue;
  const m=s.morph?morphValue(gx,s,dx,gy,dy):0,rotation=s.rotation+(hash(col,row,s.seed+25)*2-1)*h.randomRotation+(s.rotationGradient?s.rotationStart+(s.rotationEnd-s.rotationStart)*m:0),a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
  const circle=fastCircle(s),contours=compactCircles&&circle?[]:(pair?[interpolateOutline(pair[0],pair[1],m)]:source).map(c=>c.map(p=>({x:Math.round((gx+(p.x*ca-p.y*sa)*size)*1000)/1000,y:Math.round((gy+(p.x*sa+p.y*ca)*size)*1000)/1000})));
