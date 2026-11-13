@@ -1,5 +1,9 @@
+import ClipperLib from 'clipper-lib';
 import { filledGeometry,mergeGeometry,pointInside,signedArea } from '../custom/geometry';
 import type { Point } from '../engine';
 export function combineJoinGroups(groups:number[][]){const out:number[][]=[];for(const group of groups){let ids=new Set(group);for(let i=out.length-1;i>=0;i--)if(out[i].some(id=>ids.has(id))){ids=new Set([...ids,...out[i]]);out.splice(i,1);}if(ids.size>=2)out.push([...ids].sort((a,b)=>a-b));}return out;}
 export function joinedCellContours(cells:Point[][],ids:number[]){const outer=ids.filter(id=>cells[id]&&signedArea(cells[id])>0),consumed=new Set(outer);const regions=outer.map(id=>{const holes=cells.flatMap((ring,i)=>signedArea(ring)<0&&pointInside(ring[0],cells[id])?(consumed.add(i),[ring]):[]);return filledGeometry([cells[id],...holes]);});return{contours:regions.length?mergeGeometry(regions):[],consumed};}
 export function joinCellGroups(cells:Point[][],groups:number[][]){const removed=new Set<number>(),merged:Point[][]=[];for(const ids of combineJoinGroups(groups)){const part=joinedCellContours(cells,ids);part.consumed.forEach(id=>removed.add(id));merged.push(...part.contours);}return[...cells.filter((_,i)=>!removed.has(i)),...merged];}
+
+/** Zero spacing welds every touching outer contour; negative rings remain holes. */
+export function unionTouchingCells(cells:Point[][]):Point[][]{if(!cells.length)return[];const scale=1000,clip=new ClipperLib.Clipper(),result:ClipperLib.Paths=[];clip.StrictlySimple=true;clip.AddPaths(cells.filter(c=>c.length>=3).map(c=>c.map(p=>({X:Math.round(p.x*scale),Y:Math.round(p.y*scale)}))),ClipperLib.PolyType.ptSubject,true);clip.Execute(ClipperLib.ClipType.ctUnion,result,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);return result.map(c=>c.map(p=>({x:p.X/scale,y:p.Y/scale})));}

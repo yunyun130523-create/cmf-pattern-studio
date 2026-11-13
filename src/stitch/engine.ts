@@ -1,4 +1,4 @@
-import { joinCellGroups } from './join';
+import { joinCellGroups,unionTouchingCells } from './join';
 import { filletRing,cleanSeamNetwork,joinedSeamPaths,doubleSeamPaths,colorSeamSides } from './paths';
 import { stitchSurface } from './Surface';
 import { mergedStitchContours } from './merge';
@@ -24,7 +24,7 @@ export function stitchGeometry(width:number,height:number,g:StitchSettings,setti
  for(let i=0;i<polygon.length;i++){const p=polygon[i],q=polygon[(i+1)%polygon.length],dp=p.x*nx+p.y*ny-k,dq=q.x*nx+q.y*ny-k;if(dp<=1e-7)out.push(p);if((dp<0)!==(dq<0)){const t=dp/(dp-dq);out.push({x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t});}}polygon=out;}if(polygon.length>=3)add(polygon.map(p=>({x:cx+p.x*w,y:cy+p.y*h})));
  }}
  const angle=g.rotation*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle),rotate=(p:Point)=>({x:n(cx+(p.x-cx)*c-(p.y-cy)*s),y:n(cy+(p.x-cx)*s+(p.y-cy)*c)});
- const sourceCells=cells.map(a=>a.map(rotate)),finalCells=joinCellGroups(sourceCells,g.joinGroups).map(c=>filletRing(c,g.corner*px));
+ const sourceCells=cells.map(a=>a.map(rotate)),finalCells=(g.layout==='shape'&&g.spacing===0?unionTouchingCells(sourceCells):joinCellGroups(sourceCells,g.joinGroups)).map(c=>filletRing(c,g.corner*px));
  const finalEdges=finalCells.flatMap(c=>c.map((a,i)=>({a,b:c[(i+1)%c.length]})));
  return{cells:finalCells,sourceCells,seams:cleanSeamNetwork(finalEdges)};
 }
