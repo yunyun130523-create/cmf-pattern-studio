@@ -6,7 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 整潔車縫與圓角版本的最新驗證
+## 分區合併與雷射材質的最新驗證
+
+版本 2.0.0-alpha.13：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43389312175
+
+- 292 項測試、39 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 真正點選相接區塊並確認合併後分區數減少、內部縫線移除；雙針兩色有實際路徑與 SVG 色彩。
+- 車縫面板的不規則切回水平已驗證，隨機欄位歸零；藍色控制點可直接操作，JSON 保存合併及兩色。
+- 三種雷射材質有真實 Canvas 像素，方向會改變圖案，高度 PNG 與 JSON 還原通過。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：058790ce98b0fec8be7411f08df3dcd44ff7a16c3cb0acb8b2e1e870a995094e。
+
+## 整潔車縫與圓角版本的歷史驗證
 
 版本 2.0.0-alpha.12：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43380105672
 
