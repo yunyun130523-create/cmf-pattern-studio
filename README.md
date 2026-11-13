@@ -6,13 +6,22 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。278 項測試與 30 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。283 項測試與 33 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 乾淨接點、圓角與精簡面板 · 2.0.0-alpha.12（已發布）
+
+- 移除車縫試用標題／開關／介紹、CMF 示意色卡與側欄專案區塊；JSON 載入與匯出保留在頂部工具列。
+- 以分頁切換：電腦車縫分頁啟用合成預覽，圖案設計分頁回到平面；修改 Gradient Pattern 後回車縫即可重新合成。匯入車縫 JSON 及重開已儲存的車縫設計會定位到車縫分頁。
+- 線網先處理交叉切分、共線重疊去重及連續路徑追蹤。雙針改以圓接線帶的真正聯集邊界生成，T／X 接點不再逐段外推形成交叉線頭。使用免費開源 clipper-lib 6.4.2（Boost Software License 1.0），授權見 THIRD_PARTY_NOTICES.txt。
+- 形狀圓角 0～15 mm，依相鄰邊長限制半徑，圓弧取樣成幾何輪廓；車縫、光影、孔紋避縫及匯出共用同一幾何。高複雜圓角輪廓沿用密度保護。
+- 蓬鬆感上限 300%，縫邊寬度上限 25 mm；高度增益補償過渡寬度，並加入輪廓高光，細皮紋維持獨立控制。仍屬視覺設計示意，非真實泡棉高度或機台加工檔。
+- JSON v6 保存新圓角與高蓬鬆值，舊檔案未指定圓角時預設 0。
 
 ## 輪廓蓬鬆、細皮紋與形狀合併 · 2.0.0-alpha.11（已發布）
 
@@ -119,7 +128,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 TypeScript 檢查與 Vite 正式建置、自動幾何測試、React DOM 互動測試、JSON／SVG／DXF 檔案驗證、DWG 寫入及兩個讀取器的驗證，以及正式 HTML 在模擬 DOM 的啟動測試。
 
-GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 30 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
+GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 33 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
 
 ## 第二階段擴充
 

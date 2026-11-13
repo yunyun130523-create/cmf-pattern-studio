@@ -6,7 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 蓬鬆細皮紋與形狀聯集的最新驗證
+## 整潔車縫與圓角版本的最新驗證
+
+版本 2.0.0-alpha.12：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43380105672
+
+- 283 項測試、33 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 驗證共線去重、X 接點聯集、不自交雙針輪廓、針距、幾何圓角與高蓬鬆值還原。
+- 真正下載比較 100% 與 300% 蓬鬆 PNG，確認像素改變；UI 區塊移除、頂部 JSON、SVG／PNG／JSON 及分頁切換均通過。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：b0fb716d491cc644cde91a1ad1f04ce467b92f4977b22a19ee7de71321a52cc0。
+
+## 蓬鬆細皮紋與形狀聯集的歷史驗證
 
 版本 2.0.0-alpha.11：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43374619792
 
