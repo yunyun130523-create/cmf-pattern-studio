@@ -311,6 +311,7 @@ export function parseProject(text: string): Settings {
   }
   if(result.morph&&morphIssue(result))throw new Error('此專案的自訂輪廓無法安全變形，請先關閉 Morph 後再儲存。');
   result.stitch=raw.stitch===undefined?{...STITCH_DEFAULTS}:validateStitch(raw.stitch);
+  if(result.stitch.shape.startsWith('custom:')&&!result.customShapes.some(c=>c.id===result.stitch.shape))throw new Error('車縫自訂輪廓資料遺失。');
   result.rangeMask=raw.rangeMask===undefined?{...MASK_DEFAULTS}:validateMask(raw.rangeMask);
   return result;
 }
