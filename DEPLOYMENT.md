@@ -6,7 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 漸變範圍版本的最新驗證
+## 車縫試用版本的最新驗證
+
+版本 2.0.0-alpha.8：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43361001019
+
+- 258 項測試、21 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 車縫共邊去重、參數與雙排線、原 Pattern 恢復、SVG／PNG 真正下載、JSON 還原已驗證。
+- 原圖片點陣測試改為等候 Canvas 實際繪圖，避免在 Worker 回傳但尚未繪圖時檢查。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：dc053c2b1e871c2fa1a70db57056ab7aa89aa7bd3176e5ec2cd118d55f9ad165。
+
+## 漸變範圍版本的歷史驗證
 
 版本 2.0.0-alpha.7：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43190722442
 
