@@ -1,0 +1,16 @@
+import { describe,it,expect } from 'vitest';
+import { DEFAULTS,projectJSON,parseProject } from '../src/engine';
+import { STITCH_DEFAULTS,validateStitch } from '../src/stitch/model';
+import { mergedStitchContours } from '../src/stitch/merge';
+import { bounds,signedArea } from '../src/custom/geometry';
+import { stitchGeometry,stitchSVG } from '../src/stitch/engine';
+import { stitchSurface } from '../src/stitch/Surface';
+import { composeStitchPattern } from '../src/stitch/pattern';
+const s={...DEFAULTS,width:600,height:400,stitch:{...STITCH_DEFAULTS,enabled:true,layout:'shape' as const,shape:'hexagon' as const,mergeEnabled:true,mergeShape:'rectangle' as const}};
+describe('車縫聯集與輪廓蓬鬆光影',()=>{
+ it('六角形與長方形真正聯集為單一外框，面積非兩圖疊加',()=>{const c=mergedStitchContours(s),area=c.reduce((n,c)=>n+signedArea(c),0);expect(c).toHaveLength(1);expect(c[0].length).toBeGreaterThan(6);expect(area).toBeGreaterThan(.75);expect(area).toBeLessThan(.75+1.3*.55);expect(bounds(c).width).toBeCloseTo(1.3);const g=stitchGeometry(600,400,s.stitch,s);expect(g.cells[0].length).toBe(c[0].length);expect(stitchSVG(s)).not.toMatch(/NaN|Infinity|<image/);});
+ it('水平與垂直的置中、前緣、後緣對齊皆改變幾何',()=>{const get=(align:'center'|'start'|'end')=>bounds(mergedStitchContours({...s,stitch:{...s.stitch,mergeAlign:align}}));expect(get('center').minX).toBeCloseTo(-.65);expect(get('start').minX).toBeCloseTo(-.5);expect(get('end').minX).toBeCloseTo(-.8);const vertical=(align:'center'|'start'|'end')=>bounds(mergedStitchContours({...s,stitch:{...s.stitch,mergeAxis:'vertical',mergeAlign:align,mergeHeight:140,mergeWidth:60}}));expect(vertical('center').minY).toBeCloseTo(-.7);expect(vertical('start').maxY).toBeCloseTo(.9);expect(vertical('end').minY).toBeCloseTo(-.9);});
+ it('位移可形成分離輪廓，合併後的 Pattern 仍依真正外框避縫',()=>{const separated={...s,stitch:{...s.stitch,mergeOffsetX:150}};expect(mergedStitchContours(separated).length).toBe(2);const p=stitchGeometry(600,400,s.stitch,s),a=composeStitchPattern({...s,stitch:{...s.stitch,patternEnabled:true}},p);expect(a.glyphs.length).toBeGreaterThan(0);});
+ it('高度光影以每格真實輪廓 Alpha 計算，細皮紋可獨立調整',()=>{const cells=stitchGeometry(600,400,s.stitch,s).cells,a=stitchSurface(s,cells),b=stitchSurface({...s,stitch:{...s.stitch,puff:100,edgeWidth:5,grainSize:1.5,grain:80,lightAngle:30}},cells);expect(a.defs).toContain('in="SourceAlpha"');expect(a.defs).toContain('feDiffuseLighting');expect(a.defs).toContain('leather-height');expect(a.defs).not.toContain('radialGradient');expect(b.defs).not.toBe(a.defs);const flat=stitchSurface({...s,stitch:{...s.stitch,puff:0,grain:0}},cells);expect(flat.body).not.toContain('filter=');expect(stitchSVG({...s,stitch:{...s.stitch,surface:false}})).not.toContain('stitch-relief');});
+ it('JSON 還原合併與皮紋，舊版自動補上預設且拒絕錯誤參數',()=>{expect(parseProject(projectJSON(s))).toEqual(s);const old={...STITCH_DEFAULTS}as any;for(const k of ['edgeWidth','grain','grainSize','lightAngle','mergeEnabled','mergeShape','mergeWidth','mergeHeight','mergeAlign','mergeAxis','mergeOffsetX','mergeOffsetY'])delete old[k];expect(validateStitch(old)).toEqual(STITCH_DEFAULTS);for(const p of [{mergeWidth:0},{edgeWidth:-1},{grain:101},{mergeAlign:'fake'}])expect(()=>validateStitch({...STITCH_DEFAULTS,...p})).toThrow();});
+});
