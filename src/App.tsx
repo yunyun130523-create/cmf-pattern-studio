@@ -1,5 +1,7 @@
+import { gradientModePatch } from './gradient';
+import { combineJoinGroups,joinedCellContours } from './stitch/join';
 import { StitchPanel } from './stitch/Panel';
-import { stitchMarkup, stitchSVG } from './stitch/engine';
+import { stitchMarkup, stitchSVG, stitchGeometry } from './stitch/engine';
 import { RangeMaskPanel } from './mask/Panel';
 import { GrainPanel, CHANNEL_NAMES } from './grain/Panel';
 import { GrainCanvas } from './grain/Canvas';
@@ -18,7 +20,7 @@ import DwgWorker from './dwg.worker?worker&inline';
 import { CustomLibrary } from './custom/Library';
 import { UploadDialog } from './custom/UploadDialog';
 import { readLibrary, saveLibrary, mergeLibraries } from './custom/storage';
-import { type CustomShape, MAX_SHAPES } from './custom/geometry';
+import { type CustomShape, MAX_SHAPES, signedArea } from './custom/geometry';
 import { controlPatch, controlPositions, type ControlKey } from './controls';
 
 type ExportFormat = 'PNG'|'SVG'|'JSON'|'DWG'|'DXF';
@@ -50,8 +52,12 @@ export default function App() {
   const [s,setS]=useState<Settings>(initialSettings);
   const current=useRef(s);const past=useRef<Settings[]>([]);const future=useRef<Settings[]>([]);const [,refreshHistory]=useState(0);
   const [saved,setSaved]=useState(true), [storageOK,setStorageOK]=useState(true);
+  const [joinPicking,setJoinPicking]=useState(false),[joinSelected,setJoinSelected]=useState<number[]>([]),[joinError,setJoinError]=useState('');
   const update=useCallback((patch:Partial<Settings>|Settings)=>{
     const next={...current.current,...patch};
+    const geometryKeys=['layout','shape','width','height','spacing','stagger','irregularity','seed','mergeEnabled','mergeShape','mergeWidth','mergeHeight','mergeAlign','mergeAxis','mergeOffsetX','mergeOffsetY'] as const;
+    const structural=['width','height','aspect','customScaleX','customScaleY','proportions'].some(k=>!Object.is(next[k as keyof Settings],current.current[k as keyof Settings]))||geometryKeys.some(k=>next.stitch[k]!==current.current.stitch[k]);
+    if(structural){setJoinSelected([]);setJoinError('');if(next.stitch.joinGroups===current.current.stitch.joinGroups&&next.stitch.joinGroups.length)next.stitch={...next.stitch,joinGroups:[]};}
     if(next.morph&&morphIssue(next))next.morph=false;
     if((Object.keys(next) as (keyof Settings)[]).every(key=>Object.is(next[key],current.current[key])))return;
     past.current=[...past.current.slice(-59),current.current];future.current=[];current.current=next;setS(next);setSaved(false);
@@ -65,7 +71,8 @@ export default function App() {
   useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(''),4200);return()=>clearTimeout(timer);},[toast]);
   useEffect(()=>{const timer=setTimeout(()=>{try{localStorage.setItem(STORAGE,projectJSON(s));setSaved(true);setStorageOK(true);}catch{setStorageOK(false);}},350);return()=>clearTimeout(timer);},[s]);
   const stitchMode=s.stitch.enabled,imageMode=!stitchMode&&s.halftone.enabled&&!!s.halftone.image,grainMode=!stitchMode&&s.grain.enabled;
-  const stitchPreview=useMemo(()=>stitchMode?stitchMarkup(s):'',[s,stitchMode]);
+  const stitchData=useMemo(()=>stitchMode?stitchGeometry(s.width,s.height,s.stitch,s):null,[s.width,s.height,s.aspect,s.customScaleX,s.customScaleY,s.proportions,s.customShapes,s.stitch.layout,s.stitch.shape,s.stitch.width,s.stitch.height,s.stitch.rotation,s.stitch.spacing,s.stitch.stagger,s.stitch.irregularity,s.stitch.seed,s.stitch.mergeEnabled,s.stitch.mergeShape,s.stitch.mergeWidth,s.stitch.mergeHeight,s.stitch.mergeAlign,s.stitch.mergeAxis,s.stitch.mergeOffsetX,s.stitch.mergeOffsetY,s.stitch.corner,s.stitch.joinGroups,stitchMode]);
+  const stitchPreview=useMemo(()=>stitchMode?stitchMarkup(s,stitchData!):'',[s,stitchMode,stitchData]);
   const geometrySettings=useRef(s);if((Object.keys(s) as (keyof Settings)[]).some(k=>k!=='grain'&&!Object.is(s[k],geometrySettings.current[k])))geometrySettings.current=s;
   const patternInput=geometrySettings.current;
   const imageWorker=useHalftoneWorker(patternInput),grainWorker=useGrain(s);
@@ -76,6 +83,9 @@ export default function App() {
   const [showControls,setShowControls]=useState(true),[showGrid,setShowGrid]=useState(false),[zoom,setZoom]=useState(100),[sidebar,setSidebar]=useState(true),[linked,setLinked]=useState(true);
   const [dialog,setDialog]=useState<'export'|'help'|'future'|null>(null),[format,setFormat]=useState<ExportFormat>('PNG'),[scale,setScale]=useState(2),[cadUnit,setCadUnit]=useState<'mm'|'px'>('mm'),[busy,setBusy]=useState(false);
   const [activeTab,setActiveTab]=useState<'pattern'|'stitch'|'image'|'grain'|'material'>(s.stitch.enabled?'stitch':'pattern');
+  useEffect(()=>{if(activeTab!=='stitch'||!stitchMode){setJoinPicking(false);setJoinSelected([]);setJoinError('');}},[activeTab,stitchMode]);
+  const applyJoin=()=>{if(!stitchData||joinSelected.length<2)return;try{const groups=combineJoinGroups([...s.stitch.joinGroups,joinSelected]);if(groups.length>32||groups.flat().length>512){setJoinError('最多保留 32 組、共 512 個合併區塊，請先清除區塊合併。');return;}const group=groups.find(g=>g.includes(joinSelected[0]))!,contours=joinedCellContours(stitchData.sourceCells,group).contours;if(contours.filter(c=>signedArea(c)>0).length!==1){setJoinError('區塊尚未相接，請選擇共邊區塊或先縮小圖案間距。');return;}update({stitch:{...s.stitch,joinGroups:groups}});setJoinSelected([]);setJoinPicking(false);setJoinError('');}catch{setJoinError('這些區塊無法安全合併，請重新選取相接的區塊。');}};
+  const pickJoin=(id:number)=>{setJoinError('');setJoinSelected(ids=>ids.includes(id)?ids.filter(i=>i!==id):ids.length<64?[...ids,id]:ids);};
   const svgRef=useRef<SVGSVGElement>(null),stageRef=useRef<HTMLDivElement>(null),importRef=useRef<HTMLInputElement>(null);
   const drag=useRef<ControlKey|null>(null),workerRef=useRef<Worker|null>(null);
   useEffect(()=>()=>workerRef.current?.terminate(),[]);
@@ -85,7 +95,7 @@ export default function App() {
       if(e.key==='Escape'&&!busy){setDialog(null);drag.current=null;}
     };window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);
   },[undo,redo,busy]);
-  const mode=(mode:Mode)=>{const points=mode==='vertical'?{start:{x:.5,y:.15},end:{x:.5,y:.85}}:mode==='radial'?{start:{x:.5,y:.5},end:{x:.9,y:.5},center:{x:.5,y:.5},radius:.4*s.width/Math.min(s.width,s.height)}:{start:{x:.17,y:.5},end:{x:.83,y:.5}};update({mode,...points,...(mode==='irregular'&&s.jitter===0&&s.randomRotation===0&&s.randomSize===0?{jitter:40,randomRotation:30,randomSize:35,randomDensity:20}:{})});};
+  const mode=(mode:Mode)=>update(gradientModePatch(s,mode));
   const setSpacing=(key:'spacingX'|'spacingY',value:number)=>update(linked?{spacingX:value,spacingY:value}:{[key]:value});
   const angle=Math.atan2((s.end.y-s.start.y)*s.height,(s.end.x-s.start.x)*s.width)*180/Math.PI;
   const setAngle=(deg:number)=>{const radius=Math.hypot((s.end.x-s.start.x)*s.width,(s.end.y-s.start.y)*s.height);update({end:{x:clamp(s.start.x+Math.cos(deg*Math.PI/180)*radius/s.width),y:clamp(s.start.y+Math.sin(deg*Math.PI/180)*radius/s.height)}});};
@@ -183,7 +193,7 @@ export default function App() {
               <p className="muted-note">0% 混合保留規則排列，100% 套用設定的隨機幅度。形狀比例不使用密度或雜訊值。</p>
             </Section>
             <Section title="隨機生成" en="SEED"><div className="seed-row"><NumberField label="隨機種子" value={s.seed} min={0} max={2147483647} onChange={v=>update({seed:Math.round(v)})}/><button className="icon-button" aria-label="複製 Seed" onClick={copySeed}><Copy size={14}/></button><button className="button" onClick={()=>update({seed:newSeed()})}><Shuffle size={13}/>新 Seed</button></div><p className="muted-note">相同的 Seed 與參數，會產生相同的圖案。</p><button className="button random-button" onClick={randomize}><Shuffle size={14}/>隨機探索新圖案<MoveUpRight size={14}/></button></Section>
-          </>:activeTab==='stitch'?<StitchPanel s={s} onChange={update} onCustom={()=>setUploadOpen(true)}/>:activeTab==='grain'?<GrainPanel s={s} onChange={update} onExport={channel=>void exportGrain(channel)} onJSON={()=>openExport('JSON')} result={grainWorker.result} busy={busy}/>:activeTab==='image'?<><HalftonePanel s={s} onChange={update} onCustom={()=>setUploadOpen(true)}/><Section title="點陣色彩" en="COLOR"><div className="two-col"><ColorField label="圖案顏色" value={s.foreground} onChange={foreground=>update({foreground})}/><ColorField label="背景顏色" value={s.background} onChange={background=>update({background})}/></div><label className="checkbox"><input type="checkbox" checked={s.transparentBackground} onChange={e=>update({transparentBackground:e.target.checked})}/>透明背景</label><button className="button full-width" onClick={()=>update({foreground:'#1D1D1F',background:'#F4F0E7',transparentBackground:false})}>重設黑白配色</button></Section></>:<>
+          </>:activeTab==='stitch'?<StitchPanel s={s} onChange={update} onCustom={()=>setUploadOpen(true)} joinPicking={joinPicking} joinSelectedCount={joinSelected.length} joinError={joinError} onToggleJoin={()=>{setJoinPicking(!joinPicking);setJoinSelected([]);setJoinError('');}} onApplyJoin={applyJoin} onClearJoin={()=>{update({stitch:{...s.stitch,joinGroups:[]}});setJoinSelected([]);setJoinError('');}}/>:activeTab==='grain'?<GrainPanel s={s} onChange={update} onExport={channel=>void exportGrain(channel)} onJSON={()=>openExport('JSON')} result={grainWorker.result} busy={busy}/>:activeTab==='image'?<><HalftonePanel s={s} onChange={update} onCustom={()=>setUploadOpen(true)}/><Section title="點陣色彩" en="COLOR"><div className="two-col"><ColorField label="圖案顏色" value={s.foreground} onChange={foreground=>update({foreground})}/><ColorField label="背景顏色" value={s.background} onChange={background=>update({background})}/></div><label className="checkbox"><input type="checkbox" checked={s.transparentBackground} onChange={e=>update({transparentBackground:e.target.checked})}/>透明背景</label><button className="button full-width" onClick={()=>update({foreground:'#1D1D1F',background:'#F4F0E7',transparentBackground:false})}>重設黑白配色</button></Section></>:<>
             <Section title="色彩與表面" en="COLOR & FINISH"><div className="two-col"><ColorField label="圖案顏色" value={s.foreground} onChange={v=>update({foreground:v})}/><ColorField label="背景顏色" value={s.background} onChange={v=>update({background:v})}/></div><div className="palette-row">{[['#29332f','#f2eee4'],['#adbcb2','#26342e'],['#ddd5cb','#3d352e'],['#2c3034','#bbbfc0'],['#68483a','#e6d3bc']].map(([fg,bg],i)=><button key={i} title={'材質配色 '+(i+1)} aria-label={'套用材質配色 '+(i+1)} onClick={()=>update({foreground:fg,background:bg})}><span style={{background:bg}}/><span style={{background:fg}}/></button>)}<button className="icon-button" aria-label="交換圖案與背景顏色" title="交換顏色" onClick={()=>update({foreground:s.background,background:s.foreground})}><ArrowLeftRight size={14}/></button></div><Range label="圖案不透明度" value={s.opacity} min={0} max={100} unit="%" onChange={v=>update({opacity:v})}/></Section>
             <label className="checkbox transparent-control"><input type="checkbox" checked={s.transparentBackground} onChange={e=>update({transparentBackground:e.target.checked})}/>透明背景</label><Section title="畫布設定" en="ARTBOARD"><div className="two-col"><NumberField label="畫布寬度" value={s.width} min={200} max={2400} unit="px" onChange={v=>update({width:Math.round(v)})}/><NumberField label="畫布高度" value={s.height} min={200} max={1800} unit="px" onChange={v=>update({height:Math.round(v)})}/></div><div className="size-presets">{[[1200,800],[1000,1000],[1600,900]].map(([width,height])=><button key={width} className={s.width===width&&s.height===height?'active':''} onClick={()=>update({width,height})}>{width===height?'1:1':width===1200?'3:2':'16:9'}</button>)}</div><p className="muted-note">CAD 可匯出毫米尺寸，換算基準為 96 px = 25.4 mm。</p></Section>
             <RangeMaskPanel s={s} onChange={update}/>
@@ -197,7 +207,7 @@ export default function App() {
         <div className="workspace-toolbar"><div className="workspace-title"><button className="icon-button" aria-label={sidebar?'收合參數面板':'展開參數面板'} title="切換參數面板" onClick={()=>setSidebar(!sidebar)}><Settings2 size={16}/></button><span>即時預覽</span><span className="toolbar-slash">/</span><small>{stitchMode?'電腦車縫 · 試用':grainMode?'咬花材質':imageMode?'圖片點陣':MODE_NAMES[s.mode]}</small></div><div className="toolbar-actions"><button className="icon-button" aria-label="復原" title="復原 Ctrl/⌘ Z" disabled={!past.current.length} onClick={undo}><Undo2 size={15}/></button><button className="icon-button" aria-label="重做" title="重做 Ctrl/⌘ Shift Z" disabled={!future.current.length} onClick={redo}><Redo2 size={15}/></button><span className="toolbar-separator"/><button className="icon-button" title="載入 JSON 專案" aria-label="載入 JSON 專案" onClick={()=>importRef.current?.click()}><Upload size={15}/></button><button className="icon-button" aria-label="更多匯出格式" title="更多匯出格式" onClick={()=>openExport('JSON')}><MoreHorizontal size={19}/></button></div></div>
 
         <div className="preview-stage" ref={stageRef}>
-          <div className="stage-top"><span className="canvas-tag"><span/>LIVE PREVIEW</span><div><span>{s.width} × {s.height} px</span><span className="stage-separator">|</span><button aria-label="切換控制點顯示" disabled={stitchMode&&activeTab!=='pattern'||grainMode&&s.grain.patternMode==='none'} className={showControls?'active':''} onClick={()=>setShowControls(!showControls)}>{showControls?<Eye size={12}/>:<EyeOff size={12}/>}控制點</button></div></div>
+          <div className="stage-top"><span className="canvas-tag"><span/>LIVE PREVIEW</span><div><span>{s.width} × {s.height} px</span><span className="stage-separator">|</span><button aria-label="切換控制點顯示" disabled={joinPicking||stitchMode&&!s.stitch.patternEnabled&&activeTab!=='pattern'||grainMode&&s.grain.patternMode==='none'} className={showControls?'active':''} onClick={()=>setShowControls(!showControls)}>{showControls?<Eye size={12}/>:<EyeOff size={12}/>}控制點</button></div></div>
           <div className="artboard-scroll"><div className="artboard-fit" style={{'--artboard-ratio':s.width/s.height,'--zoom':zoom/100} as CSSProperties}>
             {imageMode&&!grainMode&&<CanvasPreview settings={s} packed={imageWorker.packed} bitmap={imageWorker.bitmap}/>}
             {grainMode&&<GrainCanvas result={grainWorker.result} settings={s.grain}/>}
@@ -205,8 +215,9 @@ export default function App() {
               <rect width={s.width} height={s.height} fill={grainMode||imageMode||s.transparentBackground?'none':s.background}/>
               <g fill={s.foreground} fillRule="evenodd" opacity={s.opacity/100} data-testid="pattern-glyphs">{!stitchMode&&!grainMode&&!imageMode&&pattern.glyphs.map((g,i)=><path key={i} d={g.d} data-morph={Number(g.morphT.toFixed(6))}/>)}</g>
               {stitchMode&&<g data-testid="stitch-preview" dangerouslySetInnerHTML={{__html:stitchPreview}}/>}
+              {joinPicking&&stitchData&&<g data-testid="stitch-join-overlay">{stitchData.sourceCells.map((c,i)=>signedArea(c)>0&&Math.max(...c.map(p=>p.x))>=0&&Math.min(...c.map(p=>p.x))<=s.width&&Math.max(...c.map(p=>p.y))>=0&&Math.min(...c.map(p=>p.y))<=s.height?<path key={i} data-cell-id={i} data-selected={joinSelected.includes(i)} d={'M'+c.map(p=>p.x+','+p.y).join('L')+'Z'} fill="#007AFF" fillOpacity={joinSelected.includes(i)?.3:.04} stroke="#007AFF" strokeWidth={joinSelected.includes(i)?2:.5} role="button" aria-label={'選取車縫區塊 '+i} aria-pressed={joinSelected.includes(i)} tabIndex={0} style={{cursor:'pointer'}} onClick={e=>{e.stopPropagation();pickJoin(i);}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickJoin(i);}}}/>:null)}</g>}
               {showGrid&&<g opacity=".19" stroke={s.foreground} strokeWidth=".7" pointerEvents="none">{Array.from({length:Math.ceil(s.width/preview.effectiveSpacingX)},(_,i)=><line key={'x'+i} x1={i*preview.effectiveSpacingX} x2={i*preview.effectiveSpacingX} y1={0} y2={s.height}/>)}{Array.from({length:Math.ceil(s.height/preview.effectiveSpacingY)},(_,i)=><line key={'y'+i} y1={i*preview.effectiveSpacingY} y2={i*preview.effectiveSpacingY} x1={0} x2={s.width}/>)}</g>}
-              {showControls&&(!stitchMode||activeTab==='pattern')&&(!grainMode||s.grain.patternMode!=='none')&&<g className="gradient-overlay">
+              {showControls&&!joinPicking&&(!stitchMode||activeTab==='pattern'||s.stitch.patternEnabled)&&(!grainMode||s.grain.patternMode!=='none')&&<g className="gradient-overlay">
 
                 <line x1={s.start.x*s.width} y1={s.start.y*s.height} x2={s.end.x*s.width} y2={s.end.y*s.height} stroke="var(--ui-accent)" strokeWidth="10" opacity=".16"/>
                 <line x1={s.start.x*s.width} y1={s.start.y*s.height} x2={s.end.x*s.width} y2={s.end.y*s.height} stroke="var(--ui-accent)" strokeWidth="1.5"/>

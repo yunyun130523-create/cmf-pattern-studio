@@ -1,0 +1,16 @@
+import { describe,it,expect } from 'vitest';
+import { DEFAULTS,generatePattern,projectJSON,parseProject } from '../src/engine';
+import { STITCH_DEFAULTS } from '../src/stitch/model';
+import { stitchGeometry,stitchSVG,stitchThreadPaths } from '../src/stitch/engine';
+import { joinCellGroups,combineJoinGroups } from '../src/stitch/join';
+import { gradientModePatch } from '../src/gradient';
+import { createGrainRenderer } from '../src/grain/engine';
+import { GRAIN_DEFAULTS,GRAIN_PRESETS } from '../src/grain/model';
+import { bounds } from '../src/custom/geometry';
+const square=(x:number)=>[{x,y:0},{x:x+100,y:0},{x:x+100,y:100},{x,y:100}];
+describe('合併分區、雙針配色、漸變還原與雷射材質',()=>{
+ it('合併相鄰區塊後移除內部線段，幾何與 JSON 一致',()=>{const c=joinCellGroups([square(0),square(100)],[[0,1]]);expect(c).toHaveLength(1);expect(bounds(c).width).toBe(200);expect(c[0].some(p=>p.x===100)).toBe(false);expect(combineJoinGroups([[0,1],[2,3],[1,2]])).toEqual([[0,1,2,3]]);const s={...DEFAULTS,width:600,height:400,stitch:{...STITCH_DEFAULTS,enabled:true,layout:'square' as const,width:40,height:25}},p=stitchGeometry(600,400,s.stitch,s),id=p.sourceCells.findIndex(c=>c[0].x===300&&c[0].y===200);expect(id).toBeGreaterThan(0);const v={...s,stitch:{...s.stitch,joinGroups:[[id,id+1]]}},merged=stitchGeometry(600,400,v.stitch,v);expect(merged.cells.length).toBe(p.cells.length-1);const x=p.sourceCells[id][1].x;expect(merged.seams.some(e=>e.a.x===x&&e.b.x===x&&Math.min(e.a.y,e.b.y)<245&&Math.max(e.a.y,e.b.y)>245)).toBe(false);expect(parseProject(projectJSON(v))).toEqual(v);});
+ it('不規則切回水平、垂直、中心時清除所有隨機擾動',()=>{const noisy={...DEFAULTS,...gradientModePatch(DEFAULTS,'irregular')};expect(noisy.jitter).toBeGreaterThan(0);for(const mode of ['horizontal','vertical','radial']as const){const s={...noisy,...gradientModePatch(noisy,mode)};expect([s.jitter,s.randomRotation,s.randomSize,s.randomDensity,s.randomness]).toEqual([0,0,0,0,0]);const p=generatePattern(s);expect(p.glyphs.length).toBeGreaterThan(0);expect(p.glyphs.every(g=>g.rotation===s.rotation)).toBe(true);}});
+ it('雙針在共邊網格中皆有可獨立上色的實際路徑，大圓角有效',()=>{const s={...DEFAULTS,width:600,height:400,stitch:{...STITCH_DEFAULTS,enabled:true,double:true,thread:'#ff0000',thread2:'#007aff',corner:30}},p=stitchGeometry(600,400,s.stitch,s),rows=stitchThreadPaths(p,s.stitch);expect(rows[0].length).toBeGreaterThan(0);expect(rows[1].length).toBeGreaterThan(0);const svg=stitchSVG(s);expect(svg).toContain('stroke="#ff0000"');expect(svg).toContain('stroke="#007aff"');expect(svg).not.toMatch(/NaN|Infinity/);expect(p.cells[0].length).toBeGreaterThan(6);expect(parseProject(projectJSON(s))).toEqual(s);});
+ it.each(['laser-grid','laser-lines','laser-facet']as const)('%s 產生可重現的實際高度、法線與光影',type=>{const renderer=createGrainRenderer(),s={...DEFAULTS,width:240,height:200,grain:{...GRAIN_DEFAULTS,...GRAIN_PRESETS[type],enabled:true}},a=renderer(s,120,100);expect(a.maxMm).toBeGreaterThan(a.minMm);expect(new Set(a.heightMap).size).toBeGreaterThan(20);expect(renderer(s,120,100)).toEqual(a);const b=renderer({...s,grain:{...s.grain,laserAngle:s.grain.laserAngle+15}},120,100);expect(b.normal).not.toEqual(a.normal);const parsed=parseProject(projectJSON(s));expect(parsed).toEqual(s);});
+});

@@ -549,3 +549,5 @@ input[type=number]:hover::-webkit-inner-spin-button { opacity: 1; }
 .range-mask-preview{display:block;width:100%;height:auto;border:1px solid var(--border,#D2D2D7);border-radius:10px;margin:12px 0;}
 
 .sidebar-tabs{flex-wrap:wrap}.sidebar-tabs button{flex:1 1 80px;min-height:38px}
+
+.stitch-gradient{margin:16px 0;padding:12px 0;border-block:1px solid var(--ui-divider)}.stitch-gradient summary{cursor:pointer;font-size:12px;font-weight:600;margin-bottom:14px}.stitch-gradient .mode-grid{margin-top:12px}

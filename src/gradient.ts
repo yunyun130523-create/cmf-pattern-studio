@@ -1,0 +1,3 @@
+import type { Mode, Settings } from './engine';
+/** Selecting a regular field resets the independent random layout left by irregular mode. */
+export function gradientModePatch(s:Settings,mode:Mode):Partial<Settings>{const points=mode==='vertical'?{start:{x:.5,y:.15},end:{x:.5,y:.85}}:mode==='radial'?{start:{x:.5,y:.5},end:{x:.9,y:.5},center:{x:.5,y:.5},radius:.4*s.width/Math.min(s.width,s.height)}:{start:{x:.17,y:.5},end:{x:.83,y:.5}};return{mode,...points,...(mode==='irregular'?{randomness:100,...(s.jitter===0&&s.randomRotation===0&&s.randomSize===0?{jitter:40,randomRotation:30,randomSize:35,randomDensity:20}:{})}:{jitter:0,randomRotation:0,randomSize:0,randomDensity:0,randomness:0,randomEnvelope:'uniform'})};}
