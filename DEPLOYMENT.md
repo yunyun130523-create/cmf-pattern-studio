@@ -6,7 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## Gradient Pattern 車縫合成的最新驗證
+## 蓬鬆細皮紋與形狀聯集的最新驗證
+
+版本 2.0.0-alpha.11：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43374619792
+
+- 278 項測試、30 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 驗證真布林聯集、移除內部邊線、水平／垂直前後對齊、分離輪廓、合併後 Pattern 避縫及 JSON 還原。
+- 真正下載平面與蓬鬆細皮紋 PNG，比對確認渲染像素改變；SVG 保留外輪廓與程序材質 filter／pattern，未以原始圖片取代向量。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：d64b38c4f4929f2e73fc94e62d7bd18fd36631806d6111769e5b5224f0f4f2c5。
+
+## Gradient Pattern 車縫合成的歷史驗證
 
 版本 2.0.0-alpha.10：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43371389607
 

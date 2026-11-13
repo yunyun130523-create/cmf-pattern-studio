@@ -6,13 +6,22 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。272 項測試與 27 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。278 項測試與 30 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 輪廓蓬鬆、細皮紋與形狀合併 · 2.0.0-alpha.11（已發布）
+
+- 蓬鬆使用每格真實輪廓的 SourceAlpha 高度、Gaussian 過渡與方向性 diffuse lighting，縫邊光影跟隨封閉外框。可調蓬鬆感、縫邊寬度及光源方向；平面可單獨關閉蓬鬆。
+- 細皮紋結合程序微凹凸光影與週期 Voronoi 細胞溝紋，SVG pattern 平鋪，大小以 mm 換算，強度可設零。材質仍為視覺示意，非實際泡棉高度或模具皮紋數據。
+- 幾何輪廓排列新增「主形狀＋第二形狀」真布林聯集，包含六角形＋長方形示範。重疊區內部邊線移除；不相接的形狀保留為獨立封閉輪廓。
+- 第二形狀支援寬高比例、水平／垂直對齊方向、置中／前緣／後緣、X／Y 位移。比例與位移依主形狀為基準；合併外框再依車縫格寬高縮放。前／後緣在水平為左／右，垂直為上／下。
+- 主、第二形狀可選基本幾何與既有自訂輪廓，JSON v6 保存兩者及材質設定；刪除圖案時清理相應引用。合併只套用幾何／自訂輪廓排列。
+- 合併結果共用於車縫、雙針、孔紋避縫及 SVG／PNG 輸出；原 Pattern 與圖片點陣演算法保留。
 
 ## 獨立車縫分頁與 Gradient Pattern 合成 · 2.0.0-alpha.10（已發布）
 
@@ -35,7 +44,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 圖案設計最上方新增可開關的車縫試用。提供錯位六角、菱格、方格，格寬高／旋轉、針目長度／間隙、線粗、雙排線距、皮革／線色與蓬鬆光影。啟用後暫時收起一般 Pattern 控制；關閉即回到原圖案。切換圖片點陣或咬花頁籤會退出試用，保留車縫參數。
 
-使用真正向量線段、共邊去重與 dash 針目，SVG／PNG／JSON 可匯出及還原。預覽為設計示意，不含機台針序、收針、跳針、送料補償或模具數據，不可直接投產；試用時停用 DWG／DXF。車縫為獨立模式；alpha.10 起可帶入幾何漸變與範圍，仍不套用透明背景或咬花。皮革立體感使用 SVG 光影與程序噪聲，非實際三維壓泡結構。尺寸以 96 px = 25.4 mm 換算。
+使用真正向量線段、共邊去重與 dash 針目，SVG／PNG／JSON 可匯出及還原。預覽為設計示意，不含機台針序、收針、跳針、送料補償或模具數據，不可直接投產；試用時停用 DWG／DXF。車縫為獨立模式；alpha.10 起可帶入幾何漸變與範圍，仍不套用透明背景或咬花。皮革立體感使用 SVG 光影與程序紋理，alpha.11 起沿真實輪廓計算，非實際三維壓泡結構。尺寸以 96 px = 25.4 mm 換算。
 
 ## 上傳漸變範圍 · 2.0.0-alpha.7（已發布）
 
@@ -110,7 +119,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 TypeScript 檢查與 Vite 正式建置、自動幾何測試、React DOM 互動測試、JSON／SVG／DXF 檔案驗證、DWG 寫入及兩個讀取器的驗證，以及正式 HTML 在模擬 DOM 的啟動測試。
 
-GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 27 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
+GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 30 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
 
 ## 第二階段擴充
 
