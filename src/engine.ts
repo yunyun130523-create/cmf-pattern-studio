@@ -1,3 +1,4 @@
+import { STITCH_DEFAULTS, validateStitch, type StitchSettings } from './stitch/model';
 import { MASK_DEFAULTS, validateMask, type RangeMask } from './mask/model';
 import { rangeSampler } from './mask/engine';
 import { GRAIN_DEFAULTS, validateGrain, type GrainSettings } from './grain/model';
@@ -18,6 +19,7 @@ export type MorphDirection = 'horizontal' | 'vertical' | 'custom';
 export type RandomEnvelope = 'uniform' | 'directional' | 'radial';
 export type DensityMode = 'uniform' | 'directional' | 'radial';
 export interface Settings {
+  stitch: StitchSettings;
   rangeMask: RangeMask;
   grain: GrainSettings;
   proportions: ProportionSettings;
@@ -38,6 +40,7 @@ export interface Settings {
   customShapes: CustomShape[]; customScaleX: number; customScaleY: number; customAspectLock: boolean;
 }
 export const DEFAULTS: Settings = {
+  stitch: STITCH_DEFAULTS,
   rangeMask: MASK_DEFAULTS,
   grain: GRAIN_DEFAULTS,
   proportions: DEFAULT_PROPORTIONS,
@@ -307,6 +310,7 @@ export function parseProject(text: string): Settings {
     result.center={...result.start};result.radius=clamp(Math.hypot((result.end.x-result.start.x)*result.width,(result.end.y-result.start.y)*result.height)/Math.min(result.width,result.height),.02,20);
   }
   if(result.morph&&morphIssue(result))throw new Error('此專案的自訂輪廓無法安全變形，請先關閉 Morph 後再儲存。');
+  result.stitch=raw.stitch===undefined?{...STITCH_DEFAULTS}:validateStitch(raw.stitch);
   result.rangeMask=raw.rangeMask===undefined?{...MASK_DEFAULTS}:validateMask(raw.rangeMask);
   return result;
 }

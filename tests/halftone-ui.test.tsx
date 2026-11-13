@@ -18,7 +18,7 @@ async function upload(){fireEvent.click(screen.getByRole('button',{name:'圖片�
 const slider=(name:string,value:number)=>fireEvent.change(screen.getByRole('slider',{name}),{target:{value}});
 describe('圖片點陣完整操作',()=>{
  it('上傳 JPG、Canvas 預覽、尺寸密度對比與兩模式切換、三角形、SVG 匯出',async()=>{
-  render(<App/>);await upload();expect(decode.decodePhotograph).toHaveBeenCalled();expect(screen.getByTestId('halftone-canvas')).toBeInTheDocument();expect(context.fill).toHaveBeenCalled();const first=results.at(-1).packed.count;
+  render(<App/>);await upload();expect(decode.decodePhotograph).toHaveBeenCalled();expect(screen.getByTestId('halftone-canvas')).toBeInTheDocument();await waitFor(()=>expect(context.fill).toHaveBeenCalled());const first=results.at(-1).packed.count;
   slider('最大點尺寸',4);slider('點陣密度',60);slider('圖片對比',1.7);fireEvent.change(screen.getByLabelText('圖片轉換模式'),{target:{value:'sparse'}});fireEvent.change(screen.getByLabelText('點陣形狀'),{target:{value:'triangle'}});
   await waitFor(()=>expect(requests.at(-1).settings.shape).toBe('triangle'));expect(requests.at(-1).settings.halftone.contrast).toBe(1.7);expect(results.at(-1).packed.count).toBeLessThan(first);
   fireEvent.click(screen.getByRole('button',{name:'匯出 SVG'}));fireEvent.click(screen.getByRole('button',{name:'下載 SVG'}));await waitFor(()=>expect(exports.downloadBlob).toHaveBeenCalled());const blob=vi.mocked(exports.downloadBlob).mock.calls.at(-1)![0];const text=await new Promise<string>(resolve=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.readAsText(blob);});expect(text).toContain('<path d="M');expect(text).not.toContain('<image');
