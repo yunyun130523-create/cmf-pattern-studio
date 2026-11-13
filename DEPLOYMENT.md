@@ -6,7 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 車縫試用版本的最新驗證
+## 車縫圖案庫與雙針版本的最新驗證
+
+版本 2.0.0-alpha.9：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43362810251
+
+- 268 項測試、24 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 驗證六種輪廓、雙針連續封閉針跡及線距、自訂凹形／孔洞、Seed 重現、SVG 真正向量與 JSON 還原。
+- 原車縫 PNG／SVG／JSON 及原 Pattern 驗收持續通過。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：13297f8bb8a871e3f49f6284cf250c0c4205b4455f9b1819bb1d5a549c058190。
+
+## 車縫試用版本的歷史驗證
 
 版本 2.0.0-alpha.8：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43361001019
 
