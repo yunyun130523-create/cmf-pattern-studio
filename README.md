@@ -6,13 +6,22 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。268 項測試與 24 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。272 項測試與 27 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 獨立車縫分頁與 Gradient Pattern 合成 · 2.0.0-alpha.10（已發布）
+
+- 「電腦車縫」移為獨立按鍵，位於圖案設計與圖片轉點陣之間；點擊即啟用試用，開關保留在車縫分頁內。
+- 「帶入目前 Gradient Pattern」使用圖案設計的幾何、Morph、尺寸、密度、Seed、色彩與範圍。可在圖案分頁繼續調整，並在合成預覽上拖曳漸變控制點。此來源為幾何 Pattern，不是圖片點陣。
+- 支援整張畫布連續漸變，或在每個車縫格外接框內重複漸變（包含重複套用上傳範圍）。
+- 以點落於封閉格區域的奇偶判斷、空間索引及輪廓包圍半徑避縫；加入自訂留白、雙針半線距與半線粗，保守限制完整孔紋。狹小區域可能沒有孔紋。最多 12,000 個合成圖案，預覽與輸出共用結果。
+- 孔紋與縫線以真正向量保存於 SVG，PNG 保存合成畫面，JSON v6 可還原；舊版設定預設不帶入 Pattern。孔紋為平面設計示意，非真實沖孔或機台加工檔。
+- 範圍遮罩採樣快取限制為四組尺寸，避免每格模式持續累積多種尺寸的距離場。
 
 ## 車縫圖案庫、雙針與不規則格紋 · 2.0.0-alpha.9（已發布）
 
@@ -26,7 +35,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 圖案設計最上方新增可開關的車縫試用。提供錯位六角、菱格、方格，格寬高／旋轉、針目長度／間隙、線粗、雙排線距、皮革／線色與蓬鬆光影。啟用後暫時收起一般 Pattern 控制；關閉即回到原圖案。切換圖片點陣或咬花頁籤會退出試用，保留車縫參數。
 
-使用真正向量線段、共邊去重與 dash 針目，SVG／PNG／JSON 可匯出及還原。預覽為設計示意，不含機台針序、收針、跳針、送料補償或模具數據，不可直接投產；試用時停用 DWG／DXF。車縫為獨立模式，不套用原漸變、範圍遮罩、透明背景或咬花。皮革立體感使用 SVG 光影與程序噪聲，非實際三維壓泡結構。尺寸以 96 px = 25.4 mm 換算。
+使用真正向量線段、共邊去重與 dash 針目，SVG／PNG／JSON 可匯出及還原。預覽為設計示意，不含機台針序、收針、跳針、送料補償或模具數據，不可直接投產；試用時停用 DWG／DXF。車縫為獨立模式；alpha.10 起可帶入幾何漸變與範圍，仍不套用透明背景或咬花。皮革立體感使用 SVG 光影與程序噪聲，非實際三維壓泡結構。尺寸以 96 px = 25.4 mm 換算。
 
 ## 上傳漸變範圍 · 2.0.0-alpha.7（已發布）
 
@@ -101,7 +110,7 @@ ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文�
 
 TypeScript 檢查與 Vite 正式建置、自動幾何測試、React DOM 互動測試、JSON／SVG／DXF 檔案驗證、DWG 寫入及兩個讀取器的驗證，以及正式 HTML 在模擬 DOM 的啟動測試。
 
-GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 24 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
+GitHub Actions 已使用桌面 Chromium、Pixel 7 尺寸 Chromium 與 iPhone 13 尺寸 WebKit 執行 27 項瀏覽器驗收，包含圖片上傳、Canvas／Worker、SVG／PNG 下載、咬花貼圖與 JSON 還原。手機驗收為瀏覽器尺寸模擬，非實體手機測試。完整紀錄見 DEPLOYMENT.md。
 
 ## 第二階段擴充
 

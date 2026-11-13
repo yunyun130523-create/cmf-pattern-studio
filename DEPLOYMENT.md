@@ -6,7 +6,15 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 車縫圖案庫與雙針版本的最新驗證
+## Gradient Pattern 車縫合成的最新驗證
+
+版本 2.0.0-alpha.10：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43371389607
+
+- 272 項測試、27 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 獨立分頁順序、帶入 Gradient Pattern、避縫留白、每格重複、回圖案分頁即時同步，以及合成 SVG／PNG／JSON 已驗收。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：da3964637a1c7e53d3eee2c2458ea161aaaa511ee71b5b1f996bef2fbfad33cd。
+
+## 車縫圖案庫與雙針版本的歷史驗證
 
 版本 2.0.0-alpha.9：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43362810251
 
