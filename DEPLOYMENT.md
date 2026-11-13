@@ -6,7 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 分區合併與雷射材質的最新驗證
+## 零間距自動合併的最新驗證
+
+版本 2.0.0-alpha.14：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43395778574
+
+- 297 項測試、42 項桌面／手機尺寸 Chromium 與 WebKit 驗收全部通過。
+- 驗證零間距方格為單一分區，畫布內沒有分隔線段；六角加長方形也會合併，孔洞與分離輪廓保留。
+- 實際 PNG 驗收確認零間距沒有內部紅色車縫線，正間距恢復獨立分區，JSON 匯入還原自動合併。
+- 正式站 HTTP 200，HTML 與已測建置逐位元組一致；SHA256：58955a14bea38d800688fba7f05c768616c770595d7ab68a57d0ac046d6b59ae。
+
+## 分區合併與雷射材質的歷史驗證
 
 版本 2.0.0-alpha.13：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43389312175
 
