@@ -107,3 +107,15 @@ test('車縫間距零自動合併，PNG 沒有內部分隔車縫線且可還原'
  const png=async()=>{await page.getByRole('button',{name:'匯出 PNG',exact:true}).click();await page.getByLabel('PNG 輸出倍率',{exact:true}).selectOption('1');const[d]=await Promise.all([page.waitForEvent('download'),page.getByRole('dialog',{name:'匯出設計'}).getByRole('button',{name:'下載 PNG',exact:true}).click()]);return PNG.sync.read(await downloaded(d));};const red=(p:PNG)=>{let n=0;for(let i=0;i<p.data.length;i+=4)if(p.data[i]>200&&p.data[i+1]<100&&p.data[i+2]<100)n++;return n;};expect(red(await png())).toBeGreaterThan(100);
  await range(page,'車縫圖案間距',0);await expect(page.getByRole('button',{name:'間距為 0 · 已自動合併',exact:true})).toBeDisabled();await expect(page.getByTestId('stitch-preview').locator('[data-stitch-cells]')).toHaveAttribute('data-stitch-cells','1');expect(red(await png())).toBe(0);const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings.stitch.spacing).toBe(0);await range(page,'車縫圖案間距',2);await expect.poll(async()=>Number(await page.getByTestId('stitch-preview').locator('[data-stitch-cells]').getAttribute('data-stitch-cells'))).toBeGreaterThan(1);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'zero-gap.json',mimeType:'application/json',buffer:json});await expect(page.getByTestId('stitch-preview').locator('[data-stitch-cells]')).toHaveAttribute('data-stitch-cells','1');
 });
+
+test('並列 A＋B、橫豎長方形、獨立比例及匯出還原',async({page})=>{
+ const a=page.getByTestId('shape-operand-a'),b=page.getByTestId('shape-operand-b');
+ const ar=await a.boundingBox(),br=await b.boundingBox();expect(ar).not.toBeNull();expect(br).not.toBeNull();expect(Math.abs(ar!.y-br!.y)).toBeLessThan(2);expect(br!.x).toBeGreaterThan(ar!.x);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2)).toBe(true);
+ await a.getByRole('button',{name:'橫向長方形',exact:true}).click();await b.getByRole('button',{name:'結束直向長方形',exact:true}).click();
+ await page.getByRole('button',{name:'形狀相加合併',exact:true}).click();await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('switch',{name:'啟用形狀漸變',exact:true})).toHaveAttribute('aria-checked','false');
+ await page.getByRole('switch',{name:'結束比例鎖定',exact:true}).click();await range(page,'結束Y 比例',180);await expect(page.getByRole('slider',{name:'起始Y 比例',exact:true})).toHaveValue('100');
+ const svg=(await exportFile(page,'SVG')).toString('utf8');expect(svg).toContain('<path');expect(svg).not.toContain('<image');const png=PNG.sync.read(await exportFile(page,'PNG'));expect(png.width).toBe(2400);
+ const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings).toMatchObject({shape:'horizontal',targetShape:'vertical',combine:true,morph:false,proportions:{end:{vertical:{y:180}}}});
+ await range(page,'結束Y 比例',90);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'operands.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'結束Y 比例',exact:true})).toHaveValue('180');await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');
+});

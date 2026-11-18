@@ -19,3 +19,13 @@ describe('圖形比例即時操作',()=>{
  it('資料庫載入期間刪除的圖案不會被舊讀取結果重新加入',async()=>{const c=importSVG('<svg><rect width="10" height="10"/></svg>','載入中圖案');localStorage.setItem('cmf-pattern-studio-v1',projectJSON({...state,shape:c.id,customShapes:[c],morph:false}));let resolve!:(value:Awaited<ReturnType<typeof storage.readLibrary>>)=>void;vi.spyOn(storage,'readLibrary').mockReturnValue(new Promise(r=>{resolve=r;}));render(<App/>);fireEvent.click(screen.getByRole('button',{name:'刪除 載入中圖案'}));resolve({shapes:[c],backend:'IndexedDB'});await waitFor(()=>expect(screen.getByRole('button',{name:'新增自訂圖案'})).toBeEnabled());expect(screen.queryByRole('button',{name:'選取自訂圖案 載入中圖案'})).not.toBeInTheDocument();});
  it('比例資料會自動儲存並在重新開啟及 JSON 匯入後還原',async()=>{const view=render(<App/>);slider('起始X 比例',150);slider('結束X 比例',70);await waitFor(()=>expect(parseProject(localStorage.getItem('cmf-pattern-studio-v1')!).proportions.start.circle.x).toBe(150));const saved=localStorage.getItem('cmf-pattern-studio-v1')!;view.unmount();render(<App/>);expect(screen.getByRole('slider',{name:'起始X 比例',exact:true})).toHaveValue('150');expect(screen.getByRole('slider',{name:'結束X 比例',exact:true})).toHaveValue('70');slider('起始X 比例',220);const f=new File([saved],'proportions.json');Object.defineProperty(f,'text',{value:async()=>saved});fireEvent.change(screen.getByLabelText('選擇 JSON 專案檔'),{target:{files:[f]}});await waitFor(()=>expect(screen.getByRole('slider',{name:'起始X 比例',exact:true})).toHaveValue('150'));});
 });
+
+it('形狀 B 的新增圖案保留 A，兩側比例與相加結果獨立更新',async()=>{
+ render(<App/>);await waitFor(()=>expect(screen.getByRole('button',{name:'新增結束自訂圖案'})).toBeEnabled());
+ fireEvent.click(screen.getByRole('button',{name:'橫向長方形',exact:true}));fireEvent.click(screen.getByRole('button',{name:'新增結束自訂圖案'}));
+ const file=new File(['<svg><rect width="10" height="30"/></svg>'],'vertical-b.svg',{type:'image/svg+xml'});Object.defineProperty(file,'text',{value:async()=>'<svg><rect width="10" height="30"/></svg>'});
+ fireEvent.change(screen.getByLabelText('自訂圖案檔案'),{target:{files:[file]}});fireEvent.click(await screen.findByRole('button',{name:'確認加入圖案庫'}));
+ expect(screen.getByRole('button',{name:'橫向長方形',exact:true})).toHaveAttribute('aria-pressed','true');
+ fireEvent.click(screen.getByRole('button',{name:'形狀相加合併'}));const before=path();slider('結束X 比例',250);expect(path()).not.toBe(before);expect(screen.getByRole('slider',{name:'起始X 比例',exact:true})).toHaveValue('100');
+ await waitFor(()=>{const saved=parseProject(localStorage.getItem('cmf-pattern-studio-v1')!);expect(saved.shape).toBe('horizontal');expect(saved.targetShape).toMatch(/^custom:/);expect(saved.combine).toBe(true);});
+});

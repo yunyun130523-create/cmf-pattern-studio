@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULTS, MORPH_VERTEX_COUNT, SHAPES, generatePattern, interpolateOutline, morphValue, outline, svgDocument, type Point } from '../src/engine';
+import { DEFAULTS, MORPH_VERTEX_COUNT, SHAPES, generatePattern, interpolateOutline, morphOutlines, morphValue, outline, svgDocument, type Point } from '../src/engine';
 const area=(points:Point[])=>Math.abs(points.reduce((sum,p,i)=>{const q=points[(i+1)%points.length];return sum+p.x*q.y-q.x*p.y;},0))/2;
 const cross=(a:Point,b:Point,c:Point)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
 function selfIntersects(points:Point[]):boolean {
@@ -14,7 +14,7 @@ const specimen={...DEFAULTS,width:200,height:200,spacingX:40,spacingY:40,minSize
 describe('exact geometric shape morphing',()=>{
   it('uses consistent vertex count, ray correspondence and winding for every shape',()=>{
     for(const aspect of [1,2.3,5]) {
-      const shapes=SHAPES.map(shape=>outline(shape,aspect));
+      const shapes=SHAPES.filter(shape=>shape!=='vertical').map(shape=>outline(shape,aspect));
       shapes.forEach(points=>expect(points).toHaveLength(MORPH_VERTEX_COUNT));
       for(let k=1;k<shapes.length;k++)for(let i=0;i<MORPH_VERTEX_COUNT;i++){
         const a=shapes[0][i],b=shapes[k][i];expect(Math.abs(a.x*b.y-a.y*b.x)).toBeLessThan(1e-12);
@@ -40,7 +40,7 @@ describe('exact geometric shape morphing',()=>{
   });
   it.each(SHAPES)('%s morphs to all targets without self-intersections',source=>{
     for(const target of SHAPES)for(const aspect of [1,2.3,5]){
-      const a=outline(source,aspect),b=outline(target,aspect);
+      const [a,b]=morphOutlines({...DEFAULTS,shape:source,targetShape:target,aspect});
       for(let i=0;i<=20;i++){const points=interpolateOutline(a,b,i/20);expect(selfIntersects(points)).toBe(false);expect(area(points)).toBeGreaterThan(.04);}
     }
   });

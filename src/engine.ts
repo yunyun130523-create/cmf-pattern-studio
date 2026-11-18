@@ -6,11 +6,11 @@ import { DEFAULT_PROPORTIONS, getProportion, neutralProportion, validateProporti
 import { proportionalContours } from './proportions/geometry';
 import { HALFTONE_DEFAULTS, validateHalftone, type HalftoneSettings } from './halftone/model';
 import { generateHalftone } from './halftone/engine';
-import { bounds, compatibleOutlines, morphRestriction, validateCustomShape, MAX_SHAPES, type CustomShape } from './custom/geometry';
-export const SHAPES = ['circle', 'triangle', 'square', 'diamond', 'hexagon', 'rectangle'] as const;
+import { bounds, filledGeometry, mergeGeometry, compatibleOutlines, morphRestriction, validateCustomShape, MAX_SHAPES, type CustomShape } from './custom/geometry';
+export const SHAPES = ['circle', 'triangle', 'square', 'diamond', 'hexagon', 'rectangle', 'horizontal', 'vertical'] as const;
 export type BuiltinShape = typeof SHAPES[number];
 export type Shape = BuiltinShape | `custom:${string}`;
-export const SHAPE_NAMES: Record<BuiltinShape, string> = { circle: '圓形', triangle: '三角形', square: '正方形', diamond: '菱形', hexagon: '六角形', rectangle: '長方形' };
+export const SHAPE_NAMES: Record<BuiltinShape, string> = { circle: '圓形', triangle: '三角形', square: '正方形', diamond: '菱形', hexagon: '六角形', rectangle: '長方形', horizontal:'橫向長方形', vertical:'直向長方形' };
 export const MODES = ['horizontal', 'vertical', 'radial', 'irregular'] as const;
 export type Mode = typeof MODES[number];
 export const MODE_NAMES: Record<Mode, string> = { horizontal: '水平漸變', vertical: '垂直漸變', radial: '中心擴散', irregular: '不規則漸變' };
@@ -19,6 +19,7 @@ export type MorphDirection = 'horizontal' | 'vertical' | 'custom';
 export type RandomEnvelope = 'uniform' | 'directional' | 'radial';
 export type DensityMode = 'uniform' | 'directional' | 'radial';
 export interface Settings {
+  combine:boolean;
   stitch: StitchSettings;
   rangeMask: RangeMask;
   grain: GrainSettings;
@@ -40,6 +41,7 @@ export interface Settings {
   customShapes: CustomShape[]; customScaleX: number; customScaleY: number; customAspectLock: boolean;
 }
 export const DEFAULTS: Settings = {
+  combine:false,
   stitch: STITCH_DEFAULTS,
   rangeMask: MASK_DEFAULTS,
   grain: GRAIN_DEFAULTS,
@@ -134,7 +136,7 @@ const TAU = Math.PI * 2;
  */
 function samplingAngles(aspect: number, steps: number): number[] {
   const angles = [0];
-  for (const shape of SHAPES) {
+  for (const shape of SHAPES.filter(shape=>shape!=='horizontal'&&shape!=='vertical')) {
     for (const p of vertices(shape, aspect) ?? []) {
       const angle = ((Math.atan2(p.y, p.x) + Math.PI / 2) % TAU + TAU) % TAU;
       if (!angles.some(a => Math.abs(a - angle) < 1e-10 || Math.abs(Math.abs(a - angle) - TAU) < 1e-10)) angles.push(angle);
@@ -153,6 +155,8 @@ function samplingAngles(aspect: number, steps: number): number[] {
   return angles;
 }
 export function outline(shape: BuiltinShape, aspect: number, steps = MORPH_VERTEX_COUNT): Point[] {
+  if(shape==='horizontal')return outline('rectangle',aspect,steps);
+  if(shape==='vertical')return outline('rectangle',aspect,steps).map(p=>({x:-p.y,y:p.x}));
   const vs = vertices(shape, aspect);
   return samplingAngles(aspect, steps).map(angle => {
     const a = -Math.PI / 2 + angle, dx = Math.cos(a), dy = Math.sin(a);
@@ -171,13 +175,14 @@ export function outline(shape: BuiltinShape, aspect: number, steps = MORPH_VERTE
 export function isCustom(shape:Shape):shape is `custom:${string}`{return shape.startsWith('custom:');}
 export function shapeName(shape:Shape,library:CustomShape[]=[]):string{return isCustom(shape)?library.find(s=>s.id===shape)?.name??'自訂圖案':SHAPE_NAMES[shape];}
 export function hasShapeProportions(s:Settings,endpoint:Endpoint='start'):boolean{const shape=endpoint==='start'?s.shape:s.targetShape;return !neutralProportion(getProportion(s.proportions,shape,endpoint),shape);}
-export function fastCircle(s:Settings):boolean{return s.shape==='circle'&&!s.morph&&!hasShapeProportions(s);}
+export function fastCircle(s:Settings):boolean{return !s.combine&&s.shape==='circle'&&!s.morph&&!hasShapeProportions(s);}
 export function shapeContours(shape:Shape,s:Settings,endpoint:Endpoint='start'):Point[][]{
   let contours:Point[][];
   if(!isCustom(shape))contours=[outline(shape,s.aspect)];
   else{const custom=s.customShapes.find(c=>c.id===shape);if(!custom)throw new Error('找不到自訂圖案的幾何資料，請重新載入專案。');contours=custom.contours.map(c=>c.map(p=>({x:p.x*s.customScaleX,y:p.y*s.customScaleY})));}
   const p=getProportion(s.proportions,shape,endpoint);return neutralProportion(p,shape)?contours:proportionalContours(contours,shape,s.aspect,p);
 }
+export function patternContours(s:Settings):Point[][]{return s.combine?mergeGeometry([filledGeometry(shapeContours(s.shape,s)),filledGeometry(shapeContours(s.targetShape,s,'end'))]):shapeContours(s.shape,s);}
 export function morphIssue(s:Settings):string|null{
   for(const ref of [s.shape,s.targetShape])if(isCustom(ref)){
     const shape=s.customShapes.find(c=>c.id===ref);if(!shape)return'找不到自訂圖案資料。';const reason=morphRestriction(shape);if(reason)return reason;
@@ -186,7 +191,7 @@ export function morphIssue(s:Settings):string|null{
 export function morphOutlines(s:Settings):[Point[],Point[]]{
   const reason=morphIssue(s);if(reason)throw new Error(reason);
   const from=shapeContours(s.shape,s)[0],to=shapeContours(s.targetShape,s,'end')[0];
-  return isCustom(s.shape)||isCustom(s.targetShape)||hasShapeProportions(s)||hasShapeProportions(s,'end')?compatibleOutlines(from,to):[from,to];
+  return s.shape==='vertical'||s.targetShape==='vertical'||isCustom(s.shape)||isCustom(s.targetShape)||hasShapeProportions(s)||hasShapeProportions(s,'end')?compatibleOutlines(from,to):[from,to];
 }
 export function customDimensions(s:Settings){
   const contours=shapeContours(s.shape,s),b=bounds(contours),base=s.halftone.enabled&&s.halftone.image?s.halftone.maxSize:s.endpointSize?Math.max(s.sizeStart,s.sizeEnd):s.maxSize;
@@ -219,14 +224,14 @@ export interface Pattern { glyphs: Glyph[]; effectiveSpacingX: number; effective
 const n3 = (n: number) => Number(n.toFixed(3));
 export function generatePattern(s: Settings): Pattern {
   if(s.halftone.enabled&&s.halftone.image)return generateHalftone(s);
-  const source=shapeContours(s.shape,s),pair=s.morph?morphOutlines(s):null;
+  const source=patternContours(s),pair=s.morph&&!s.combine?morphOutlines(s):null;
   const pointCount=pair?pair[0].length:source.reduce((n,c)=>n+c.length,0);
   const cap=Math.max(1,Math.min(12000,Math.floor(1200000/pointCount)));
   const estimated=s.width/s.spacingX*s.height/s.spacingY;
   // Consistent safety cap shared by preview and all exports, never export a different pattern.
   const factor=Math.max(1,Math.sqrt(estimated/cap));
   const sx=s.spacingX*factor, sy=s.spacingY*factor;
-  const custom=isCustom(s.shape)||(s.morph&&isCustom(s.targetShape))||hasShapeProportions(s)||(s.morph&&hasShapeProportions(s,'end'));
+  const custom=s.combine||isCustom(s.shape)||(s.morph&&isCustom(s.targetShape))||hasShapeProportions(s)||(s.morph&&hasShapeProportions(s,'end'));
   const extent=custom?Math.max(...(pair?[...pair[0],...pair[1]]:source.flat()).map(p=>Math.hypot(p.x,p.y))):.72;
   const glyphs: Glyph[]=[];
   let area=0;
@@ -244,7 +249,7 @@ export function generatePattern(s: Settings): Pattern {
       const size=baseSize*(1+(hash(col,row,s.seed+3)*2-1)*s.randomSize/100*weight);
       if(size<.05 || gx-size*extent<0 || gy-size*extent<0 || gx+size*extent>s.width || gy+size*extent>s.height) continue;
       if(maskSample&&maskSample.distance<size*extent)continue;
-      const progress=morphValue(gx,s,sx,gy,sy),m=s.morph?progress:0;
+      const progress=morphValue(gx,s,sx,gy,sy),m=s.morph&&!s.combine?progress:0;
       const rotation=s.rotation+(s.rotationGradient?s.rotationStart+(s.rotationEnd-s.rotationStart)*progress:0)+(hash(col,row,s.seed+4)*2-1)*s.randomRotation*weight;
       const a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
       const contours=(pair?[interpolateOutline(pair[0],pair[1],m)]:source).map(c=>c.map(p=>{
@@ -309,6 +314,7 @@ export function parseProject(text: string): Settings {
   if(doc.version===1&&raw.center===undefined&&result.mode==='radial'){
     result.center={...result.start};result.radius=clamp(Math.hypot((result.end.x-result.start.x)*result.width,(result.end.y-result.start.y)*result.height)/Math.min(result.width,result.height),.02,20);
   }
+  if(raw.combine!==undefined&&typeof raw.combine!=='boolean')throw new Error('形狀相加參數無效。');result.combine=raw.combine??false;if(result.combine)result.morph=false;
   if(result.morph&&morphIssue(result))throw new Error('此專案的自訂輪廓無法安全變形，請先關閉 Morph 後再儲存。');
   result.stitch=raw.stitch===undefined?{...STITCH_DEFAULTS}:validateStitch(raw.stitch);
   if(result.stitch.shape.startsWith('custom:')&&!result.customShapes.some(c=>c.id===result.stitch.shape))throw new Error('車縫自訂輪廓資料遺失。');

@@ -9,8 +9,8 @@ export function proportionalContours(source:Point[][],shape:Shape,aspect:number,
   const cx=ring.reduce((n,q)=>n+q.x,0)/3,cy=ring.reduce((n,q)=>n+q.y,0)/3;contours=[ring.map(q=>({x:q.x-cx,y:q.y-cy}))];
  }else if(shape==='hexagon'){
   const offset=p.hexDirection==='flat'?0:-Math.PI/6;contours=[Array.from({length:6},(_,i)=>({x:.5*Math.cos(offset+i*Math.PI/3),y:.5*Math.sin(offset+i*Math.PI/3)}))];
- }else if((shape==='square'||shape==='rectangle')&&p.corner>0){
-  const w=1,h=shape==='rectangle'?1/aspect:1,r=Math.min(w,h)*p.corner/100;
+ }else if((['square','rectangle','horizontal','vertical'].includes(shape))&&p.corner>0){
+  const w=shape==='vertical'?1/aspect:1,h=shape==='rectangle'||shape==='horizontal'?1/aspect:1,r=Math.min(w,h)*p.corner/100;
   const centers=[{x:w/2-r,y:-h/2+r},{x:w/2-r,y:h/2-r},{x:-w/2+r,y:h/2-r},{x:-w/2+r,y:-h/2+r}];
   const ring:Point[]=[];centers.forEach((center,k)=>{for(let i=0;i<=16;i++){const a=-Math.PI/2+k*Math.PI/2+i*Math.PI/32,q={x:center.x+r*Math.cos(a),y:center.y+r*Math.sin(a)};if(!ring.length||Math.hypot(q.x-ring.at(-1)!.x,q.y-ring.at(-1)!.y)>1e-10)ring.push(q);}});if(Math.hypot(ring[0].x-ring.at(-1)!.x,ring[0].y-ring.at(-1)!.y)<1e-10)ring.pop();contours=[ring];
  }
