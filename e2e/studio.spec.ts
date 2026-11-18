@@ -119,3 +119,11 @@ test('並列 A＋B、橫豎長方形、獨立比例及匯出還原',async({page}
  const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings).toMatchObject({shape:'horizontal',targetShape:'vertical',combine:true,morph:false,proportions:{end:{vertical:{y:180}}}});
  await range(page,'結束Y 比例',90);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'operands.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'結束Y 比例',exact:true})).toHaveValue('180');await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');
 });
+
+test('車縫 A＋B 並列、先調 B 再合併、置中與 SVG／PNG／JSON',async({page})=>{
+ await page.getByRole('button',{name:'電腦車縫',exact:true}).click();const a=page.getByTestId('stitch-operand-a'),b=page.getByTestId('stitch-operand-b'),ar=await a.boundingBox(),br=await b.boundingBox();expect(Math.abs(ar!.y-br!.y)).toBeLessThan(2);expect(br!.x).toBeGreaterThan(ar!.x);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);
+ await a.getByRole('button',{name:'車縫六角形',exact:true}).click();await b.getByRole('button',{name:'相加車縫橫向長方形',exact:true}).click();const old=await page.getByTestId('stitch-preview').innerHTML();await range(page,'相加圖形寬度',160);await expect(page.getByTestId('stitch-preview')).toHaveJSProperty('innerHTML',old);
+ await page.getByRole('button',{name:'車縫形狀相加合併',exact:true}).click();await expect.poll(()=>page.getByTestId('stitch-preview').innerHTML()).not.toBe(old);await range(page,'相加圖形水平位移',50);await page.getByRole('button',{name:'置中並清除位移'}).click();await expect(page.getByRole('slider',{name:'相加圖形水平位移',exact:true})).toHaveValue('0');
+ const svg=(await exportFile(page,'SVG')).toString();expect(svg).toContain('<path');const png=PNG.sync.read(await exportFile(page,'PNG'));expect(png.width).toBe(2400);const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings.stitch).toMatchObject({mergeEnabled:true,shape:'hexagon',mergeShape:'horizontal',mergeWidth:160,mergeOffsetX:0});
+ await page.getByRole('button',{name:'車縫形狀相加合併',exact:true}).click();await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'stitch-operands.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('button',{name:'車縫形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');
+});
