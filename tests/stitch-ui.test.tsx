@@ -37,3 +37,5 @@ it('車縫 B 自訂上傳不替換 A 與圖案設計的形狀',async()=>{
  const svg='<svg><rect width="30" height="10"/></svg>',file=new File([svg],'sewing-b.svg',{type:'image/svg+xml'});Object.defineProperty(file,'text',{value:async()=>svg});fireEvent.change(screen.getByLabelText('自訂圖案檔案'),{target:{files:[file]}});fireEvent.click(await screen.findByRole('button',{name:'確認加入圖案庫'}));
  await waitFor(()=>{const saved=parseProject(localStorage.getItem('cmf-pattern-studio-v1')!);expect(saved.stitch.shape).toBe('hexagon');expect(saved.stitch.mergeShape).toMatch(/^custom:/);expect(saved.shape).toBe(DEFAULTS.shape);});
 });
+
+it('選取區塊期間切換連續帶會結束選取，不留下無法關閉的選取模式',()=>{render(<App/>);fireEvent.click(screen.getByRole('button',{name:'電腦車縫',exact:true}));fireEvent.click(screen.getByRole('button',{name:'選取相鄰區塊',exact:true}));expect(screen.getByRole('button',{name:'結束區塊選取'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'車縫橫向連續帶',exact:true}));expect(screen.queryByRole('button',{name:'合併選取區塊（0）'})).not.toBeInTheDocument();expect(screen.getByRole('button',{name:'連續帶 · 已自動合併'})).toBeDisabled();});

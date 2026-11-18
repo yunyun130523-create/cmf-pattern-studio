@@ -55,7 +55,7 @@ export default function App() {
     const next={...current.current,...patch};
     const geometryKeys=['mergeUnits','layout','shape','width','height','spacing','stagger','irregularity','seed','mergeEnabled','mergeShape','mergeWidth','mergeHeight','mergeAlign','mergeAxis','mergeOffsetX','mergeOffsetY'] as const;
     const structural=['width','height','aspect','customScaleX','customScaleY','proportions'].some(k=>!Object.is(next[k as keyof Settings],current.current[k as keyof Settings]))||geometryKeys.some(k=>next.stitch[k]!==current.current.stitch[k]);
-    if(structural){setJoinSelected([]);setJoinError('');if(next.stitch.joinGroups===current.current.stitch.joinGroups&&next.stitch.joinGroups.length)next.stitch={...next.stitch,joinGroups:[]};}
+    if(structural){setJoinPicking(false);setJoinSelected([]);setJoinError('');if(next.stitch.joinGroups===current.current.stitch.joinGroups&&next.stitch.joinGroups.length)next.stitch={...next.stitch,joinGroups:[]};}
     if(next.morph&&morphIssue(next))next.morph=false;
     if((Object.keys(next) as (keyof Settings)[]).every(key=>Object.is(next[key],current.current[key])))return;
     past.current=[...past.current.slice(-59),current.current];future.current=[];current.current=next;setS(next);setSaved(false);
