@@ -6,7 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 並列相加圖形與橫／豎的最新驗證
+## 車縫並列形狀與操作流程的最新驗證
+
+版本 2.0.0-alpha.16：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44265725667
+
+- 原始碼提交：5be215390a9f3ed3c1484e252c5f23dc8ac61425。
+- 316 項測試、48 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 驗證車縫 A／B 左右並列、手機整頁不溢出、B 可先調再合併、置中重設保留尺寸、B 自訂 SVG 上傳不覆蓋 A 與原 Pattern。
+- SVG／PNG 匯出、JSON 還原、雙針、蓬鬆、Gradient Pattern、相鄰區塊及零間距自動合併回歸全部通過。沿用原有聯集幾何與尺寸參數，沒有新增必填 JSON 欄位。
+- 正式站 HTTP 200，3,935,344 bytes，與已測建置逐位元組一致；SHA256：f9f8fc9c027dd1c2dfc26e7de13123cabd588a805bd2bc63e7f907fe1b9daff9。
+
+## 並列相加圖形與橫／豎的歷史驗證
 
 版本 2.0.0-alpha.15：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44262860516
 

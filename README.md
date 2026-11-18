@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。314 項測試與 45 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。316 項測試與 48 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 車縫並列形狀與操作流程 · 2.0.0-alpha.16（已發布）
+
+車縫也採 A＋B 左右並列，兩側皆可選八種內建圖形或匯入自訂圖案。B 可先選擇與調整，點中間「＋」才套用真正聯集；B 匯入不會覆蓋 A 或參數圖案。A 卡片控制整個成品格的寬高（mm），B 卡片控制相對 A 的寬高（%），清楚區分不同尺度，沿用既有尺寸及聯集演算法，舊 JSON 的成品保持相同。
+
+合併結果新增輪廓預覽，與實際聯集共用幾何。對齊、位移集中在兩張卡片下方，新增「置中並清除位移」，保留兩側圖形與尺寸。面板依序為選形狀、排列與圓角、縫線與雙針、皮革與蓬鬆、Gradient Pattern、相鄰區塊合併。零間距自動合併、雙針兩色、蓬鬆、漸變場與匯出皆保留；手機可在卡片內橫向滑動。
 
 ## 並列相加圖形與橫／豎圖案 · 2.0.0-alpha.15（已發布）
 
