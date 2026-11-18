@@ -6,7 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 零間距自動合併的最新驗證
+## 並列相加圖形與橫／豎的最新驗證
+
+版本 2.0.0-alpha.15：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44262860516
+
+- 原始碼提交：44d5d5b19e4bea4f8c9dc1838151172c15e4ad43。
+- 314 項測試、45 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 驗證 A／B 卡片左右並列、整頁不溢出、橫加豎真正聯集、兩端比例獨立、SVG／PNG 匯出及 JSON 還原；B 新增自訂 SVG 不覆蓋 A。
+- 保留舊六種輪廓及 Morph 的取樣；直向圖形先對齊輪廓對應後插值，回歸測試確認所有形狀組合沒有自交。
+- 正式站 HTTP 200，3,931,637 bytes，與已測建置逐位元組一致；SHA256：aa963ce1dabbd439d3b728fe230a37b8ab2d79f283f0e77a81d909d1dcab243a。
+
+## 零間距自動合併的歷史驗證
 
 版本 2.0.0-alpha.14：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/43395778574
 

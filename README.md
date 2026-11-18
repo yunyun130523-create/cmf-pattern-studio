@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。297 項測試與 42 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。314 項測試與 45 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 並列相加圖形與橫／豎圖案 · 2.0.0-alpha.15（已發布）
+
+「圖案設計」的 A、B 兩組圖案庫、預覽與比例控制改為左右並列，中間「＋」可切換真正的置中布林聯集，移除重疊內部輪廓。兩端可各自選內建／自訂圖案、X/Y 比例、旋轉與圓角；B 的新增圖案不覆蓋 A。圖案庫新增橫向、直向長方形，保留原長方形及舊設定。桌面加寬圖案側欄，窄畫面可在兩張卡片內橫向滑動，頁面不溢出。
+
+原 Shape Morphing 保留；開啟相加會關閉 Morph，重新啟用 Morph 會關閉相加。原專案缺少相加設定時維持舊行為。聯集後的 Pattern 同步用於點陣、車縫孔紋與咬花 Pattern。SVG 使用實際聯集輪廓，PNG 使用相同幾何，JSON v6 保存兩端圖形、比例與相加狀態。
 
 ## 車縫零間距自動合併 · 2.0.0-alpha.14（已發布）
 
