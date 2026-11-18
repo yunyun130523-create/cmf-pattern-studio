@@ -6,7 +6,18 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 車縫並列形狀與操作流程的最新驗證
+## 車縫連續帶與 mm 尺寸的最新驗證
+
+版本 2.0.0-alpha.17：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44270123066 （第二次執行）
+
+- 原始碼提交：e0240d5c9e023bf040c24775e0919b0570b0c412；主功能提交：4b1a5c6e46c15ad62af8a6ccbf17732d4541dab7。
+- 321 項測試、51 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 驗證菱形＋橫向連續帶真正接通整列，正間距下也沒有帶內垂直端點縫線；橫、豎長方形使用實際 mm 寬高，合併不壓回 A 的外框。
+- SVG 外框使用 mm、PNG 匯出正常、JSON 保存連續帶及 mm 尺寸／位移並還原；舊百分比專案換算後維持幾何尺寸。切換輪廓會結束區塊選取。
+- 初次執行在 Ubuntu 瀏覽器依賴套件下載階段長時間等待，取消後重跑，第二次安裝、完整驗收及部署全部成功。
+- 正式站 HTTP 200，3,938,476 bytes，與已測建置逐位元組一致；SHA256：dda00ba9fb939a4cf69663e428f2635326277f6494ac604c3ad3be2a6874e5ca。
+
+## 車縫並列形狀與操作流程的歷史驗證
 
 版本 2.0.0-alpha.16：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44265725667
 
