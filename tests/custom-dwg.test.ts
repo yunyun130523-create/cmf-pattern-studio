@@ -12,5 +12,5 @@ describe('真正 DWG 本機解析',()=>{
  it('Circle 及孔洞轉換成向量閉合輪廓',()=>{const a=new Circle();a.center=new XYZ(0,0,0);a.radius=10;const b=new Circle();b.center=new XYZ(0,0,0);b.radius=5;const s=importDWG(file([a,b]));expect(s.contours).toHaveLength(2);expect(s.sourceWidth).toBeCloseTo(20);expect(s.contours.reduce((n,c)=>n+signedArea(c),0)).toBeCloseTo(Math.PI*.75/4,2);});
  it('接合 Arc 與 Line 成為封閉半圓',()=>{const a=new Arc();a.center=new XYZ(0,0,0);a.radius=10;a.startAngle=0;a.endAngle=Math.PI;const l=new Line();l.startPoint=new XYZ(-10,0,0);l.endPoint=new XYZ(10,0,0);const s=importDWG(file([a,l]));expect(s.sourceWidth).toBeCloseTo(20);expect(s.sourceHeight).toBeCloseTo(10);});
  it('Polyline 的 bulge 曲線確實取樣',()=>{const p=rect();p.vertices[0].bulge=.5;const s=importDWG(file([p]));expect(s.contours[0].length).toBeGreaterThan(4);});
- it('拒絕改副檔名的 DXF 或開放 CAD 輪廓',()=>{expect(()=>importDWG(new TextEncoder().encode('0\nSECTION\n').buffer)).toThrow(/不是有效/);const l=new Line();l.startPoint=new XYZ(0,0,0);l.endPoint=new XYZ(10,0,0);expect(()=>importDWG(file([l]))).toThrow(/未封閉/);});
+ it('拒絕假 DWG，但接受開放 CAD 線段',()=>{expect(()=>importDWG(new TextEncoder().encode('0\nSECTION\n').buffer)).toThrow(/不是有效/);const l=new Line();l.startPoint=new XYZ(0,0,0);l.endPoint=new XYZ(10,0,0);expect(importDWG(file([l])).stitchPaths).toHaveLength(1);});
 });

@@ -1,3 +1,4 @@
+import {bounds} from '../custom/geometry';
 import { joinCellGroups,unionTouchingCells } from './join';
 import { filletRing,cleanSeamNetwork,joinedSeamPaths,doubleSeamPaths,colorSeamSides } from './paths';
 import { stitchSurface } from './Surface';
@@ -7,7 +8,13 @@ import { hash, type Settings, type Point } from '../engine';
 import type { StitchSettings } from './model';
 const px=96/25.4,n=(v:number)=>Number(v.toFixed(3));
 export interface Seam {a:Point;b:Point}
+function lineworkGeometry(width:number,height:number,g:StitchSettings,settings:Settings){
+ const refs=[g.shape,...(g.mergeEnabled?[g.mergeShape]:[])],lineSettings={...settings,stitch:g,customShapes:settings.customShapes.map(c=>c.stitchPaths?{...c,contours:c.stitchPaths}:c)},operands=stitchOperands(lineSettings),paths=refs.flatMap((ref,i)=>operands[i].map(r=>settings.customShapes.find(c=>c.id===ref)?.stitchPaths?r:[...r,r[0]])),b=bounds(paths),sx=g.mergeUnits==='mm'?px:g.width*px/Math.max(b.width,1e-6),sy=g.mergeUnits==='mm'?px:g.height*px/Math.max(b.height,1e-6),dx=Math.max(1,b.width*sx+g.spacing*px),dy=Math.max(1,b.height*sy+g.spacing*px),extent=Math.hypot(width,height)*.6+Math.max(g.width,g.height)*px,angle=g.rotation*Math.PI/180,c=Math.cos(angle),sn=Math.sin(angle),edges:Seam[]=[],factor=Math.max(1,Math.sqrt((extent*2/dx+3)*(extent*2/dy+3)*paths.flat().length/100000)),stepX=dx*factor,stepY=dy*factor;
+ for(let row=Math.floor(-extent/stepY);row<=Math.ceil(extent/stepY);row++)for(let col=Math.floor(-extent/stepX);col<=Math.ceil(extent/stepX);col++)for(const path of paths){const points=path.map(p=>{const x=(p.x-(b.minX+b.maxX)/2)*sx+col*stepX+(g.stagger&&row%2?stepX/2:0),y=(p.y-(b.minY+b.maxY)/2)*sy+row*stepY;return{x:n(width/2+x*c-y*sn),y:n(height/2+x*sn+y*c)};});for(let i=1;i<points.length;i++)edges.push({a:points[i-1],b:points[i]});}
+ const seams=cleanSeamNetwork(edges),cells=seams.map(e=>[e.a,e.b]);return{cells,sourceCells:cells,seams};
+}
 export function stitchGeometry(width:number,height:number,g:StitchSettings,settings?:Settings){
+ if(g.layout==='shape'&&settings&&settings.customShapes.some(c=>c.stitchPaths&&(c.id===g.shape||g.mergeEnabled&&c.id===g.mergeShape)))return lineworkGeometry(width,height,g,settings);
  const w=g.width*px,h=g.height*px,horizontalBand=g.shape==='band'||g.mergeEnabled&&g.mergeShape==='band',verticalBand=g.shape==='bandVertical'||g.mergeEnabled&&g.mergeShape==='bandVertical',continuous=g.layout==='shape'&&(horizontalBand||verticalBand),extent=Math.hypot(width,height)*.6+Math.max(w,h),cx=width/2,cy=height/2,cells:Point[][]=[];
  const add=(source:Point[])=>{const input=source,points=input.filter((p,i)=>Math.hypot(p.x-input[(i+input.length-1)%input.length].x,p.y-input[(i+input.length-1)%input.length].y)>1e-6);if(points.length<3)return;cells.push(points);};
  if(g.layout==='hex')for(let col=Math.floor(-extent/(w*.8));col<=Math.ceil(extent/(w*.8));col++)for(let row=Math.floor(-extent/h);row<=Math.ceil(extent/h);row++){const x=cx+col*w*.8,y=cy+row*h+(col%2)*h/2;add([[-.5,0],[-.3,-.5],[.3,-.5],[.5,0],[.3,.5],[-.3,.5]].map(([a,b])=>({x:x+a*w,y:y+b*h})));}

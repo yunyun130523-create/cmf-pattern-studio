@@ -1,7 +1,9 @@
+import ClipperLib from 'clipper-lib';
 import polygonClipping from 'polygon-clipping';
 import type { Point } from '../engine';
 export interface CustomShape {
   id: `custom:${string}`; name: string; source: 'SVG'|'PNG'|'JPEG'|'DWG';
+  stitchPaths?: Point[][];
   contours: Point[][]; sourceWidth: number; sourceHeight: number;
   unit: 'px'|'mm'|'unitless'; warnings: string[]; updatedAt: number;
 }
@@ -77,6 +79,14 @@ export function makeCustomShape(contours:Point[][],meta:{name:string;source:Cust
   const normalized=clean.map(c=>c.map(p=>({x:(p.x-cx)/scale,y:(p.y-cy)/scale})));
   return{id:`custom:${crypto.randomUUID()}`,name:meta.name.trim().slice(0,80)||'自訂圖案',source:meta.source,unit:meta.unit??'px',sourceWidth:b.width,sourceHeight:b.height,contours:normalized,warnings:(meta.warnings??[]).slice(0,20),updatedAt:Date.now()};
 }
+/** Keep CAD centerlines separately; thin filled outlines serve only pattern previews. */
+export function makeLineShape(paths:Point[][],meta:Parameters<typeof makeCustomShape>[1]):CustomShape{
+ const b=bounds(paths),size=Math.max(b.width,b.height);if(!Number.isFinite(size)||size<=0)throw new Error('沒有有效線段。');
+ const scale=100000/size,offset=new ClipperLib.ClipperOffset(2,10),out:ClipperLib.Paths=[];
+ for(const p of paths)offset.AddPath(p.map(q=>({X:Math.round(q.x*scale),Y:Math.round(q.y*scale)})),ClipperLib.JoinType.jtRound,ClipperLib.EndType.etOpenRound);
+ offset.Execute(out,100);const rings=out.map(r=>r.map(p=>({x:p.X/scale,y:p.Y/scale}))),shape=makeCustomShape(rings,meta),bb=bounds(rings),span=Math.max(bb.width,bb.height);
+ shape.stitchPaths=paths.map(r=>r.map(p=>({x:(p.x-(bb.minX+bb.maxX)/2)/span,y:(p.y-(bb.minY+bb.maxY)/2)/span})));return shape;
+}
 export function validateCustomShape(raw:unknown):CustomShape{
   if(!raw||typeof raw!=='object')throw new Error('自訂圖案格式錯誤。');
   const s=raw as CustomShape;
@@ -84,9 +94,12 @@ export function validateCustomShape(raw:unknown):CustomShape{
   if(!Number.isFinite(s.sourceWidth)||!Number.isFinite(s.sourceHeight)||s.sourceWidth<=0||s.sourceHeight<=0||!Number.isFinite(s.updatedAt))throw new Error('自訂圖案尺寸錯誤。');
   if(!Array.isArray(s.contours)||!s.contours.length||s.contours.length>MAX_CONTOURS||s.contours.reduce((n,c)=>n+(Array.isArray(c)?c.length:MAX_POINTS+1),0)>MAX_POINTS)throw new Error('自訂圖案太複雜。');
   const contours=s.contours.map(c=>{if(!Array.isArray(c))throw new Error('輪廓格式錯誤。');for(const p of c)if(!p||typeof p.x!=='number'||typeof p.y!=='number'||Math.abs(p.x)>.500001||Math.abs(p.y)>.500001)throw new Error('自訂圖案座標錯誤。');return cleanRing(c);});
-  return{id:s.id,name:s.name,source:s.source,unit:s.unit,sourceWidth:s.sourceWidth,sourceHeight:s.sourceHeight,updatedAt:s.updatedAt,contours,warnings:Array.isArray(s.warnings)?s.warnings.filter(w=>typeof w==='string').map(w=>w.slice(0,250)).slice(0,20):[]};
+  let stitchPaths:Point[][]|undefined;
+  if(s.stitchPaths!==undefined){if(!Array.isArray(s.stitchPaths)||!s.stitchPaths.length||s.stitchPaths.length>MAX_CONTOURS||s.stitchPaths.reduce((n,p)=>n+(Array.isArray(p)?p.length:MAX_POINTS+1),0)>MAX_POINTS)throw new Error('車縫路徑過多。');stitchPaths=s.stitchPaths.map(path=>{if(!Array.isArray(path)||path.length<2)throw new Error('車縫路徑無效。');return path.map(p=>{if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>.500001||Math.abs(p.y)>.500001)throw new Error('車縫路徑座標錯誤。');return{x:p.x,y:p.y};});});}
+  return{...(stitchPaths?{stitchPaths}:{}),id:s.id,name:s.name,source:s.source,unit:s.unit,sourceWidth:s.sourceWidth,sourceHeight:s.sourceHeight,updatedAt:s.updatedAt,contours,warnings:Array.isArray(s.warnings)?s.warnings.filter(w=>typeof w==='string').map(w=>w.slice(0,250)).slice(0,20):[]};
 }
 export function morphRestriction(shape:CustomShape):string|null{
+  if(shape.stitchPaths)return'開放線段依原路徑車縫，不使用封閉形狀變形。';
   if(shape.contours.length!==1)return'多輪廓或含孔洞圖案可正常排列，但目前不支援安全形狀變形。';
   const ring=shape.contours[0];if(ring.length>1024)return'輪廓節點過多，請簡化後再啟用形狀變形。';
   let sign=0;

@@ -15,7 +15,7 @@ export function stitchShapeContours(shape:StitchShape,s:Settings){
 /** Boolean union in a common local coordinate system. Shared interior edges disappear. */
 export function stitchOperands(s:Settings){
  const g=s.stitch;
- const box=(shape:StitchShape,w:number,h:number)=>{const c=stitchShapeContours(shape,s),b=bounds(c);return c.map(r=>r.map(p=>({x:(p.x-(b.minX+b.maxX)/2)/b.width*w,y:(p.y-(b.minY+b.maxY)/2)/b.height*h})));};
+ const box=(shape:StitchShape,w:number,h:number)=>{const c=stitchShapeContours(shape,s),b=bounds(c);return c.map(r=>r.map(p=>({x:(p.x-(b.minX+b.maxX)/2)/Math.max(b.width,1e-9)*w,y:(p.y-(b.minY+b.maxY)/2)/Math.max(b.height,1e-9)*h})));};
  const mm=g.mergeUnits==='mm',a=box(g.shape,mm?g.width:1,mm?g.height:1),b=box(g.mergeShape,g.mergeWidth/(mm?1:100),g.mergeHeight/(mm?1:100)),ab=bounds(a),bb=bounds(b);let dx=g.mergeOffsetX/(mm?1:100),dy=g.mergeOffsetY/(mm?1:100);
  if(g.mergeAlign!=='center'){const lead=g.mergeAlign==='start';if(g.mergeAxis==='horizontal')dx+=(lead?ab.minX-bb.minX:ab.maxX-bb.maxX);else dy+=(lead?ab.minY-bb.minY:ab.maxY-bb.maxY);}
  return [a,b.map(r=>r.map(p=>({x:p.x+dx,y:p.y+dy})))] as const;
