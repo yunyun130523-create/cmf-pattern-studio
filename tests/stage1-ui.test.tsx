@@ -1,3 +1,4 @@
+import {toMm} from '../src/units';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import App from '../src/App';
@@ -17,7 +18,7 @@ describe('第一階段 UI 即時操作',()=>{
   });
   it('端點尺寸、旋轉與變形比例皆可操作',()=>{
     render(<App/>);fireEvent.click(screen.getByRole('checkbox',{name:'獨立起終尺寸'}));expect(screen.getByRole('spinbutton',{name:'最小尺寸'})).toBeDisabled();
-    const old=geometry();fireEvent.change(screen.getByRole('spinbutton',{name:'結束尺寸'}),{target:{value:'25'}});expect(geometry()).not.toBe(old);
+    const old=geometry();fireEvent.change(screen.getByRole('spinbutton',{name:'結束尺寸'}),{target:{value:toMm(25)}});expect(geometry()).not.toBe(old);
     fireEvent.click(screen.getByRole('checkbox',{name:'起終旋轉漸變'}));const before=geometry();fireEvent.change(screen.getByRole('spinbutton',{name:'結束旋轉'}),{target:{value:'80'}});expect(geometry()).not.toBe(before);
     fireEvent.change(screen.getByRole('spinbutton',{name:'終點變形比例'}),{target:{value:'0'}});expect(Array.from(screen.getByTestId('pattern-glyphs').querySelectorAll('path')).every(p=>p.getAttribute('data-morph')==='0')).toBe(true);
   });

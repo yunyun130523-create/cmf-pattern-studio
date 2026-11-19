@@ -1,3 +1,4 @@
+import {toMm,mmText} from '../src/units';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from '../src/App';
@@ -7,13 +8,13 @@ vi.mock('../src/exports',async importOriginal=>{const original=await importOrigi
 const defaults={...DEFAULTS,width:240,height:200,spacingX:25,spacingY:25};
 beforeEach(()=>{localStorage.setItem('cmf-pattern-studio-v1',projectJSON(defaults));});
 const firstPath=()=>screen.getByTestId('pattern-glyphs').innerHTML;
-const range=(label:string,value:number)=>fireEvent.change(screen.getByRole('slider',{name:label}),{target:{value}});
+const range=(label:string,value:number)=>fireEvent.change(screen.getByRole('slider',{name:label}),{target:{value:['水平間距','垂直間距'].includes(label)?toMm(value):value}});
 describe('interactive pattern controls',()=>{
   it('shows five genuine morph stages and an equal-size hexagon-to-triangle demonstration',()=>{
     render(<App/>);fireEvent.click(screen.getByRole('button',{name:/六角形 → 三角形示範/}));
     expect(screen.getByRole('button',{name:'六角形',exact:true})).toHaveAttribute('aria-pressed','true');
     expect(screen.getByRole('combobox',{name:'目標形狀'})).toHaveValue('triangle');
-    expect(screen.getByRole('spinbutton',{name:'最小尺寸'})).toHaveValue(18);expect(screen.getByRole('spinbutton',{name:'最大尺寸'})).toHaveValue(18);
+    expect(screen.getByRole('spinbutton',{name:'最小尺寸'})).toHaveValue(mmText(18));expect(screen.getByRole('spinbutton',{name:'最大尺寸'})).toHaveValue(mmText(18));
     const polygons=screen.getByTestId('morph-stages').querySelectorAll('polygon');expect(polygons).toHaveLength(5);
     expect(new Set(Array.from(polygons,p=>p.getAttribute('points'))).size).toBe(5);
     const values=Array.from(screen.getByTestId('pattern-glyphs').querySelectorAll('path'),p=>Number(p.getAttribute('data-morph')));
@@ -28,7 +29,7 @@ describe('interactive pattern controls',()=>{
   it('all pattern sliders update state and output immediately',()=>{
     render(<App/>);
     for(const [name,value] of [['過渡線性度',55],['水平間距',32],['垂直間距',28],['圖案密度',70],['旋轉角度',32],['漸變方向',40],['漸變曲線',2],['位置不規則度',30]] as const){
-      range(name,value);expect(Number((screen.getByRole('slider',{name}) as HTMLInputElement).value)).toBeCloseTo(value,0);
+      range(name,value);expect(Number((screen.getByRole('slider',{name}) as HTMLInputElement).value)).toBeCloseTo(['水平間距','垂直間距'].includes(name)?toMm(value):value,0);
     }
     fireEvent.click(screen.getByRole('button',{name:'不規則漸變'}));range('肌理尺度',8);
     fireEvent.click(screen.getByRole('button',{name:'長方形',exact:true}));range('長方形長寬比',3);
@@ -44,7 +45,7 @@ describe('interactive pattern controls',()=>{
   });
   it('independent spacing can be unlinked and stagger can be toggled',()=>{
     render(<App/>);fireEvent.click(screen.getByRole('button',{name:'連動水平與垂直間距'}));range('水平間距',40);
-    expect(screen.getByRole('slider',{name:'垂直間距'})).toHaveValue('25');
+    expect(screen.getByRole('slider',{name:'垂直間距'})).toHaveValue(String(toMm(25)));
     fireEvent.click(screen.getByRole('checkbox',{name:/錯列排列/}));expect(screen.getByRole('checkbox',{name:/錯列排列/})).not.toBeChecked();
   });
   it('draggable control points update geometry and support keyboard adjustments',()=>{
@@ -93,7 +94,7 @@ describe('colors, project and exports',()=>{
     fireEvent.click(screen.getByRole('button',{name:'交換圖案與背景顏色'}));expect(screen.getByTestId('pattern-glyphs')).toHaveAttribute('fill','#ffffff');
     for(let i=1;i<=5;i++)fireEvent.click(screen.getByRole('button',{name:'套用材質配色 '+i}));
     range('圖案不透明度',40);expect(screen.getByTestId('pattern-glyphs')).toHaveAttribute('opacity','0.4');
-    for(const [name,value] of [['畫布寬度',400],['畫布高度',300]] as const){const input=screen.getByRole('spinbutton',{name});fireEvent.change(input,{target:{value:String(value)}});fireEvent.blur(input);}
+    for(const [name,value] of [['畫布寬度',400],['畫布高度',300]] as const){const input=screen.getByRole('spinbutton',{name});fireEvent.change(input,{target:{value:String(toMm(value))}});fireEvent.blur(input);}
     expect(screen.getByTestId('pattern-canvas')).toHaveAttribute('viewBox','0 0 400 300');
     fireEvent.click(screen.getByRole('button',{name:'1:1',exact:true}));expect(screen.getByTestId('pattern-canvas')).toHaveAttribute('viewBox','0 0 1000 1000');
   });

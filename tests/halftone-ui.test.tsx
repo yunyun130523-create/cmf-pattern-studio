@@ -1,3 +1,4 @@
+import {toMm} from '../src/units';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { IDBFactory } from 'fake-indexeddb';
@@ -15,7 +16,7 @@ const data=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++)dat
 beforeEach(async()=>{cached=null;requests.length=0;results.length=0;Object.defineProperty(globalThis,'indexedDB',{value:new IDBFactory(),configurable:true});await saveLibrary([]);localStorage.setItem('cmf-pattern-studio-v1',projectJSON({...DEFAULTS,width:240,height:200}));vi.stubGlobal('Worker',TestWorker);vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockReturnValue(context as unknown as CanvasRenderingContext2D);vi.spyOn(decode,'decodePhotograph').mockResolvedValue(image);vi.spyOn(exports,'downloadBlob').mockImplementation(()=>{});});
 afterEach(()=>{vi.unstubAllGlobals();});
 async function upload(){fireEvent.click(screen.getByRole('button',{name:'圖片轉點陣'}));fireEvent.change(screen.getByLabelText('點陣來源圖片檔案'),{target:{files:[new File(['jpg'],'mountain.jpg',{type:'image/jpeg'})]}});await screen.findByLabelText('圖片轉換模式');await waitFor(()=>expect(results.some(x=>x.packed)).toBe(true));}
-const slider=(name:string,value:number)=>fireEvent.change(screen.getByRole('slider',{name}),{target:{value}});
+const slider=(name:string,value:number)=>fireEvent.change(screen.getByRole('slider',{name}),{target:{value:['最小點尺寸','最大點尺寸','點陣水平間距','點陣垂直間距'].includes(name)?toMm(value):value}});
 describe('圖片點陣完整操作',()=>{
  it('上傳 JPG、Canvas 預覽、尺寸密度對比與兩模式切換、三角形、SVG 匯出',async()=>{
   render(<App/>);await upload();expect(decode.decodePhotograph).toHaveBeenCalled();expect(screen.getByTestId('halftone-canvas')).toBeInTheDocument();await waitFor(()=>expect(context.fill).toHaveBeenCalled());const first=results.at(-1).packed.count;
