@@ -1,7 +1,7 @@
 import polygonClipping from 'polygon-clipping';
 import type { Point } from '../engine';
 export interface CustomShape {
-  id: `custom:${string}`; name: string; source: 'SVG'|'PNG'|'DWG';
+  id: `custom:${string}`; name: string; source: 'SVG'|'PNG'|'JPEG'|'DWG';
   contours: Point[][]; sourceWidth: number; sourceHeight: number;
   unit: 'px'|'mm'|'unitless'; warnings: string[]; updatedAt: number;
 }
@@ -80,7 +80,7 @@ export function makeCustomShape(contours:Point[][],meta:{name:string;source:Cust
 export function validateCustomShape(raw:unknown):CustomShape{
   if(!raw||typeof raw!=='object')throw new Error('自訂圖案格式錯誤。');
   const s=raw as CustomShape;
-  if(!/^custom:[a-zA-Z0-9_-]{1,64}$/.test(s.id)||typeof s.name!=='string'||!s.name.trim()||s.name.length>80||!['SVG','PNG','DWG'].includes(s.source)||!['px','mm','unitless'].includes(s.unit))throw new Error('自訂圖案識別資料錯誤。');
+  if(!/^custom:[a-zA-Z0-9_-]{1,64}$/.test(s.id)||typeof s.name!=='string'||!s.name.trim()||s.name.length>80||!['SVG','PNG','JPEG','DWG'].includes(s.source)||!['px','mm','unitless'].includes(s.unit))throw new Error('自訂圖案識別資料錯誤。');
   if(!Number.isFinite(s.sourceWidth)||!Number.isFinite(s.sourceHeight)||s.sourceWidth<=0||s.sourceHeight<=0||!Number.isFinite(s.updatedAt))throw new Error('自訂圖案尺寸錯誤。');
   if(!Array.isArray(s.contours)||!s.contours.length||s.contours.length>MAX_CONTOURS||s.contours.reduce((n,c)=>n+(Array.isArray(c)?c.length:MAX_POINTS+1),0)>MAX_POINTS)throw new Error('自訂圖案太複雜。');
   const contours=s.contours.map(c=>{if(!Array.isArray(c))throw new Error('輪廓格式錯誤。');for(const p of c)if(!p||typeof p.x!=='number'||typeof p.y!=='number'||Math.abs(p.x)>.500001||Math.abs(p.y)>.500001)throw new Error('自訂圖案座標錯誤。');return cleanRing(c);});

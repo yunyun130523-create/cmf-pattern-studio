@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, Pencil, Trash2, X } from 'lucide-react';
 import { pathData, type CustomShape } from './geometry';
 export function ShapeThumbnail({shape}:{shape:CustomShape}){return <svg viewBox="-.55 -.55 1.1 1.1" aria-label={shape.name+' 向量縮圖'} role="img"><path d={pathData(shape.contours)} fill="currentColor" fillRule="evenodd"/></svg>;}
+export function MemoryShapeButton({shape,selected,label,onSelect}:{shape:CustomShape;selected:boolean;label:string;onSelect:()=>void}){return <button className={'shape-button memory-button '+(selected?'active':'')} aria-label={label} aria-pressed={selected} title={shape.name} onClick={onSelect}><ShapeThumbnail shape={shape}/><small>{shape.name}</small></button>;}
 export function CustomLibrary({shapes,selected,onSelect,onRename,onDelete,status}:{shapes:CustomShape[];selected:string;onSelect:(shape:CustomShape)=>void;onRename:(id:string,name:string)=>void;onDelete:(id:string)=>void;status:string}){
   const [editing,setEditing]=useState<string|null>(null),[name,setName]=useState('');
   return <div className="custom-library"><div className="custom-library-heading"><span>自訂圖案庫 · {shapes.length}/20</span><small>{status}</small></div>{shapes.map(shape=><div key={shape.id} className={'custom-shape-row '+(shape.id===selected?'selected':'')}>

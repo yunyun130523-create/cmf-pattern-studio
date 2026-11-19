@@ -22,10 +22,10 @@ describe('圖形比例即時操作',()=>{
 
 it('形狀 B 的新增圖案保留 A，兩側比例與相加結果獨立更新',async()=>{
  render(<App/>);await waitFor(()=>expect(screen.getByRole('button',{name:'新增結束自訂圖案'})).toBeEnabled());
- fireEvent.click(screen.getByRole('button',{name:'橫向長方形',exact:true}));fireEvent.click(screen.getByRole('button',{name:'新增結束自訂圖案'}));
+ fireEvent.click(screen.getByRole('button',{name:'長方形',exact:true}));fireEvent.click(screen.getByRole('button',{name:'新增結束自訂圖案'}));
  const file=new File(['<svg><rect width="10" height="30"/></svg>'],'vertical-b.svg',{type:'image/svg+xml'});Object.defineProperty(file,'text',{value:async()=>'<svg><rect width="10" height="30"/></svg>'});
  fireEvent.change(screen.getByLabelText('自訂圖案檔案'),{target:{files:[file]}});fireEvent.click(await screen.findByRole('button',{name:'確認加入圖案庫'}));
- expect(screen.getByRole('button',{name:'橫向長方形',exact:true})).toHaveAttribute('aria-pressed','true');
+ expect(screen.getByRole('button',{name:'長方形',exact:true})).toHaveAttribute('aria-pressed','true');
  fireEvent.click(screen.getByRole('button',{name:'形狀相加合併'}));const before=path();slider('結束X 比例',250);expect(path()).not.toBe(before);expect(screen.getByRole('slider',{name:'起始X 比例',exact:true})).toHaveValue('100');
- await waitFor(()=>{const saved=parseProject(localStorage.getItem('cmf-pattern-studio-v1')!);expect(saved.shape).toBe('horizontal');expect(saved.targetShape).toMatch(/^custom:/);expect(saved.combine).toBe(true);});
+ await waitFor(()=>{const saved=parseProject(localStorage.getItem('cmf-pattern-studio-v1')!);expect(saved.shape).toBe('rectangle');expect(saved.targetShape).toMatch(/^custom:/);expect(saved.combine).toBe(true);});
 });

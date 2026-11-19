@@ -1,6 +1,7 @@
 import { test, expect, type Page, type Download } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
+import jpeg from 'jpeg-js';
 
 async function downloaded(download:Download){expect(await download.failure()).toBeNull();const path=await download.path();if(!path)throw new Error('瀏覽器未提供下載檔案');return readFile(path);}
 async function range(page:Page,name:string,value:number){await page.getByRole('slider',{name,exact:true}).evaluate((el,next)=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(el,String(next));el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));},value);}
@@ -108,15 +109,15 @@ test('車縫間距零自動合併，PNG 沒有內部分隔車縫線且可還原'
  await range(page,'車縫圖案間距',0);await expect(page.getByRole('button',{name:'間距為 0 · 已自動合併',exact:true})).toBeDisabled();await expect(page.getByTestId('stitch-preview').locator('[data-stitch-cells]')).toHaveAttribute('data-stitch-cells','1');expect(red(await png())).toBe(0);const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings.stitch.spacing).toBe(0);await range(page,'車縫圖案間距',2);await expect.poll(async()=>Number(await page.getByTestId('stitch-preview').locator('[data-stitch-cells]').getAttribute('data-stitch-cells'))).toBeGreaterThan(1);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'zero-gap.json',mimeType:'application/json',buffer:json});await expect(page.getByTestId('stitch-preview').locator('[data-stitch-cells]')).toHaveAttribute('data-stitch-cells','1');
 });
 
-test('並列 A＋B、橫豎長方形、獨立比例及匯出還原',async({page})=>{
+test('並列 A＋B、單一長方形的比例旋轉及匯出還原',async({page})=>{
  const a=page.getByTestId('shape-operand-a'),b=page.getByTestId('shape-operand-b');
  const ar=await a.boundingBox(),br=await b.boundingBox();expect(ar).not.toBeNull();expect(br).not.toBeNull();expect(Math.abs(ar!.y-br!.y)).toBeLessThan(2);expect(br!.x).toBeGreaterThan(ar!.x);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2)).toBe(true);
- await a.getByRole('button',{name:'橫向長方形',exact:true}).click();await b.getByRole('button',{name:'結束直向長方形',exact:true}).click();
+ await a.getByRole('button',{name:'長方形',exact:true}).click();await b.getByRole('button',{name:'結束長方形',exact:true}).click();await range(page,'結束圖形旋轉',90);
  await page.getByRole('button',{name:'形狀相加合併',exact:true}).click();await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('switch',{name:'啟用形狀漸變',exact:true})).toHaveAttribute('aria-checked','false');
  await page.getByRole('switch',{name:'結束比例鎖定',exact:true}).click();await range(page,'結束Y 比例',180);await expect(page.getByRole('slider',{name:'起始Y 比例',exact:true})).toHaveValue('100');
  const svg=(await exportFile(page,'SVG')).toString('utf8');expect(svg).toContain('<path');expect(svg).not.toContain('<image');const png=PNG.sync.read(await exportFile(page,'PNG'));expect(png.width).toBe(2400);
- const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings).toMatchObject({shape:'horizontal',targetShape:'vertical',combine:true,morph:false,proportions:{end:{vertical:{y:180}}}});
+ const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings).toMatchObject({shape:'rectangle',targetShape:'rectangle',combine:true,morph:false,proportions:{end:{rectangle:{y:180,rotation:90}}}});
  await range(page,'結束Y 比例',90);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'operands.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'結束Y 比例',exact:true})).toHaveValue('180');await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');
 });
 
@@ -142,4 +143,20 @@ test('整片泡棉在圖案內外與間隙都隆起，PNG 弧面與 SVG／JSON �
  const span=(png:PNG,x:number,half:number,center=400)=>{const values=[-half,0,half].map(y=>{const ix=Math.round(x*2),iy=Math.round((center+y)*2),i=(iy*png.width+ix)*4;return (png.data[i]+png.data[i+1]+png.data[i+2])/3;});return Math.max(...values)-Math.min(...values);};
  const neck=600+65*96/25.4/2;expect(span(raised,neck,6)-span(flat,neck,6)).toBeGreaterThan(15);expect(span(raised,600,25)-span(flat,600,25)).toBeGreaterThan(10);const gap=400+23.5*96/25.4;expect(span(raised,600,10,gap)-span(flat,600,10,gap)).toBeGreaterThan(10);
  const svg=(await exportFile(page,'SVG')).toString();expect(svg).toContain('foam-height');expect(svg).toContain('data-foam-coverage="whole-sheet"');expect(svg).not.toContain('<image');const json=await exportFile(page,'JSON');await range(page,'車縫蓬鬆感',0);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'puffy-band.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'車縫蓬鬆感',exact:true})).toHaveValue('180');await expect(page.locator('[data-foam-relief="true"]')).toBeVisible();
+});
+
+test('圖片預覽後手動記憶，PNG／JPG 縮圖位於形狀框且重新開啟可重用',async({page})=>{
+ const a=page.getByTestId('shape-operand-a'),b=page.getByTestId('shape-operand-b');await expect(a.getByRole('button',{name:'長方形',exact:true})).toHaveCount(1);await expect(a.getByRole('button',{name:'橫向長方形',exact:true})).toHaveCount(0);await expect(b.getByRole('button',{name:'結束直向長方形',exact:true})).toHaveCount(0);
+ const png=new PNG({width:48,height:48});for(let y=8;y<40;y++)for(let x=8;x<40;x++)if(x<20||y>28)png.data.set([0,0,0,255],(y*48+x)*4);
+ await page.getByRole('button',{name:'新增自訂圖案',exact:true}).click();await page.getByLabel('自訂圖案檔案',{exact:true}).setInputFiles({name:'remember-PNG.png',mimeType:'image/png',buffer:PNG.sync.write(png)});await expect(page.getByRole('button',{name:'確認加入圖案庫',exact:true})).toBeVisible();await expect(a.getByRole('button',{name:'形狀 A 記憶圖案 remember-PNG',exact:true})).toHaveCount(0);await page.getByRole('button',{name:'確認加入圖案庫',exact:true}).click();await expect(a.locator('.shapes-row').getByRole('button',{name:'形狀 A 記憶圖案 remember-PNG',exact:true})).toHaveAttribute('aria-pressed','true');
+ const rgba=Buffer.alloc(48*48*4,255);for(let y=8;y<40;y++)for(let x=8;x<40;x++)if(x<20||y>28)rgba.set([0,0,0,255],(y*48+x)*4);
+ await page.getByRole('button',{name:'新增結束自訂圖案',exact:true}).click();await page.getByLabel('自訂圖案檔案',{exact:true}).setInputFiles({name:'remember-JPG.jpg',mimeType:'image/jpeg',buffer:jpeg.encode({width:48,height:48,data:rgba},90).data});await page.getByRole('button',{name:'確認加入圖案庫',exact:true}).click();await expect(b.locator('.shapes-row').getByRole('button',{name:'選取結束自訂圖案 remember-JPG',exact:true})).toHaveAttribute('aria-pressed','true');
+ const json=await exportFile(page,'JSON'),doc=JSON.parse(json.toString());expect(doc.settings.customShapes.map((s:{source:string})=>s.source).sort()).toEqual(['JPEG','PNG']);const svg=(await exportFile(page,'SVG')).toString();expect(svg).toContain('<path');expect(svg).not.toContain('<image');await page.reload();await expect(a.locator('.shapes-row').getByRole('button',{name:'形狀 A 記憶圖案 remember-PNG',exact:true})).toBeVisible();await expect(b.locator('.shapes-row').getByRole('button',{name:'選取結束自訂圖案 remember-JPG',exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);await page.getByRole('button',{name:'電腦車縫',exact:true}).click();await page.getByTestId('stitch-operand-a').locator('.shapes-row').getByRole('button',{name:'車縫自訂圖案 remember-PNG',exact:true}).click();await expect(page.getByTestId('stitch-preview').locator('[data-foam-coverage="whole-sheet"]')).toBeVisible();
+});
+
+test('直向連續帶跨整欄且無中間端點，泡棉及 mm SVG／PNG／JSON 保留',async({page})=>{
+ await page.getByRole('button',{name:'電腦車縫',exact:true}).click();await page.getByRole('button',{name:'車縫六角形',exact:true}).click();await page.getByRole('button',{name:'相加車縫直向連續帶',exact:true}).click();await range(page,'車縫格寬',40);await range(page,'車縫格高',30);await range(page,'相加圖形寬度',4);await range(page,'相加圖形高度',30);await range(page,'車縫圖案間距',8);await page.getByRole('button',{name:'車縫形狀相加合併',exact:true}).click();await page.getByLabel('車縫線色',{exact:true}).fill('#ff0000');await page.getByLabel('車縫皮革色',{exact:true}).fill('#aaaaaa');
+ await expect(page.getByRole('button',{name:'連續帶 · 已自動合併',exact:true})).toBeDisabled();await expect(page.getByTestId('stitch-preview').locator('[data-foam-coverage="whole-sheet"]')).toBeVisible();const png=PNG.sync.read(await exportFile(page,'PNG'));let caps=0;for(let y=0;y<png.height;y++)for(let dx=-1;dx<=1;dx++){const i=(y*png.width+png.width/2+dx)*4;if(png.data[i]>150&&png.data[i+1]<80&&png.data[i+2]<80)caps++;}expect(caps).toBe(0);
+ const svg=(await exportFile(page,'SVG')).toString();expect(svg).toMatch(/width="[\d.]+mm"/);expect(svg).toContain('<path');const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings.stitch).toMatchObject({mergeShape:'bandVertical',mergeUnits:'mm',mergeWidth:4,mergeHeight:30,spacing:8});await page.getByRole('button',{name:'相加車縫橫向連續帶',exact:true}).click();await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'vertical-band.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('button',{name:'相加車縫直向連續帶',exact:true})).toHaveAttribute('aria-pressed','true');
 });

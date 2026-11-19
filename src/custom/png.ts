@@ -1,6 +1,8 @@
+import {decodePhotograph} from '../halftone/image';
+import {imageBytes} from '../halftone/model';
 import { filledGeometry, makeCustomShape, mergeGeometry, type CustomShape } from './geometry';
 import type { Point } from '../engine';
-export interface Raster {width:number;height:number;data:Uint8ClampedArray;sourceWidth?:number;sourceHeight?:number}
+export interface Raster {format?:'PNG'|'JPEG';width:number;height:number;data:Uint8ClampedArray;sourceWidth?:number;sourceHeight?:number}
 export interface TraceOptions {mode:'alpha'|'threshold';threshold:number;invert:boolean;removeBackground:boolean;smoothing:number}
 export function defaultTraceOptions(r:Raster):TraceOptions{
   let transparent=0;for(let i=3;i<r.data.length;i+=4)if(r.data[i]<250)transparent++;
@@ -56,7 +58,7 @@ export function traceRaster(r:Raster,options:TraceOptions,name='PNG 向量圖案
     contours.push(ring.map(p=>({x:p.x*(r.sourceWidth??w)/w,y:p.y*(r.sourceHeight??h)/h})));
     if(contours.length>128)throw new Error('圖片包含太多零碎輪廓，請先清除雜訊或簡化圖案。');
   }
-  return makeCustomShape(mergeGeometry([filledGeometry(contours,'evenodd')]),{name,source:'PNG',warnings:[...(w!==(r.sourceWidth??w)||h!==(r.sourceHeight??h)?['已縮小點陣進行向量化；匯出的是輪廓路徑，不含原始 PNG。']:[]),'PNG 為輪廓近似，平滑處理會改變細小尖角；確認預覽後再加入圖案庫。']});
+  return makeCustomShape(mergeGeometry([filledGeometry(contours,'evenodd')]),{name,source:r.format??'PNG',warnings:[...(w!==(r.sourceWidth??w)||h!==(r.sourceHeight??h)?['已縮小點陣進行向量化；匯出的是輪廓路徑，不含原始圖片。']:[]),'圖片會轉成輪廓近似，平滑處理會改變細小尖角；確認預覽後再加入圖案庫。']});
 }
 export async function decodePNG(file:File):Promise<Raster>{
   if(file.size>10_000_000)throw new Error('PNG 超過 10 MB，請先縮小。');
@@ -66,4 +68,9 @@ export async function decodePNG(file:File):Promise<Raster>{
   if(typeof createImageBitmap==='function'){const bitmap=await createImageBitmap(file);image=bitmap;sourceWidth=bitmap.width;sourceHeight=bitmap.height;release=()=>bitmap.close();}
   else{const url=URL.createObjectURL(file),img=new Image();try{await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error('PNG 無法解碼。'));img.src=url;});}finally{URL.revokeObjectURL(url);}image=img;sourceWidth=img.naturalWidth;sourceHeight=img.naturalHeight;}
   try{if(sourceWidth<1||sourceHeight<1||sourceWidth>8192||sourceHeight>8192)throw new Error('PNG 尺寸超過支援範圍，請縮至 8192 px 以下。');const scale=Math.min(1,768/Math.max(sourceWidth,sourceHeight)),width=Math.max(1,Math.round(sourceWidth*scale)),height=Math.max(1,Math.round(sourceHeight*scale)),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d',{willReadFrequently:true});if(!context)throw new Error('瀏覽器不支援點陣讀取。');context.drawImage(image,0,0,width,height);return{width,height,data:context.getImageData(0,0,width,height).data,sourceWidth,sourceHeight};}finally{release();}
+}
+
+export async function decodeJPEG(file:File):Promise<Raster>{
+ if(file.size>10_000_000)throw new Error('JPG 超過 10 MB，請先縮小。');const image=await decodePhotograph(file);if(image.format!=='JPEG')throw new Error('檔案內容不是有效的 JPG。');if(image.originalWidth>8192||image.originalHeight>8192||image.originalWidth*image.originalHeight>16777216)throw new Error('JPG 尺寸過大，請縮至 8192 px 以下且不超過 1600 萬像素。');const factor=Math.min(1,768/Math.max(image.width,image.height)),width=Math.max(1,Math.round(image.width*factor)),height=Math.max(1,Math.round(image.height*factor)),pixels=imageBytes(image),data=new Uint8ClampedArray(width*height*4);
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){const i=(Math.min(image.height-1,Math.floor(y/factor))*image.width+Math.min(image.width-1,Math.floor(x/factor)))*2,j=(y*width+x)*4;data[j]=data[j+1]=data[j+2]=pixels[i];data[j+3]=pixels[i+1];}return{format:'JPEG',width,height,data,sourceWidth:image.originalWidth,sourceHeight:image.originalHeight};
 }
