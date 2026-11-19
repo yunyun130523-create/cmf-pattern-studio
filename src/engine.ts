@@ -11,9 +11,9 @@ export const SHAPES = ['circle', 'triangle', 'square', 'diamond', 'hexagon', 're
 export type BuiltinShape = typeof SHAPES[number];
 export type Shape = BuiltinShape | `custom:${string}`;
 export const SHAPE_NAMES: Record<BuiltinShape, string> = { circle: '圓形', triangle: '三角形', square: '正方形', diamond: '菱形', hexagon: '六角形', rectangle: '長方形', horizontal:'橫向長方形', vertical:'直向長方形' };
-export const MODES = ['horizontal', 'vertical', 'radial', 'irregular'] as const;
+export const MODES = ['horizontal', 'vertical', 'radial', 'irregular', 'uniform'] as const;
 export type Mode = typeof MODES[number];
-export const MODE_NAMES: Record<Mode, string> = { horizontal: '水平漸變', vertical: '垂直漸變', radial: '中心擴散', irregular: '不規則漸變' };
+export const MODE_NAMES: Record<Mode, string> = { horizontal: '水平漸變', vertical: '垂直漸變', radial: '中心擴散', irregular: '不規則漸變', uniform: '無漸變' };
 export type Point = { x: number; y: number };
 export type MorphDirection = 'horizontal' | 'vertical' | 'custom';
 export type RandomEnvelope = 'uniform' | 'directional' | 'radial';
@@ -90,12 +90,14 @@ export function radialDistance(x: number,y: number,s: Settings): number {
   return Math.hypot(x-s.center.x*s.width,y-s.center.y*s.height)/Math.max(1,s.radius*Math.min(s.width,s.height));
 }
 export function randomWeight(x: number,y: number,s: Settings): number {
+  if(s.mode==='uniform')return 0;
   let value=1;
   if(s.randomEnvelope==='directional')value=projectedValue(x,y,s.start,s.end,s.width,s.height);
   if(s.randomEnvelope==='radial')value=clamp(radialDistance(x,y,s));
   return s.randomness/100*Math.pow(value,s.falloff);
 }
 export function densityProbability(x: number,y: number,s: Settings,weight=0): number {
+  if(s.mode==='uniform')return s.density/100;
   let t=0;
   if(s.densityMode==='radial')t=Math.pow(clamp(radialDistance(x,y,s)),s.falloff);
   if(s.densityMode==='directional'){
@@ -108,6 +110,7 @@ export function densityProbability(x: number,y: number,s: Settings,weight=0): nu
   return clamp(p*(1-s.randomDensity/100*weight*grain));
 }
 export function fieldValue(x: number, y: number, s: Settings): number {
+  if(s.mode==='uniform')return 1;
   const ax = s.start.x * s.width, ay = s.start.y * s.height;
   const dx = (s.end.x - s.start.x)*s.width, dy = (s.end.y - s.start.y)*s.height;
   const length2 = Math.max(1, dx*dx+dy*dy);
@@ -224,7 +227,7 @@ export interface Pattern { glyphs: Glyph[]; effectiveSpacingX: number; effective
 const n3 = (n: number) => Number(n.toFixed(3));
 export function generatePattern(s: Settings): Pattern {
   if(s.halftone.enabled&&s.halftone.image)return generateHalftone(s);
-  const source=patternContours(s),pair=s.morph&&!s.combine?morphOutlines(s):null;
+  const source=patternContours(s),pair=s.morph&&!s.combine&&s.mode!=='uniform'?morphOutlines(s):null;
   const pointCount=pair?pair[0].length:source.reduce((n,c)=>n+c.length,0);
   const cap=Math.max(1,Math.min(12000,Math.floor(1200000/pointCount)));
   const estimated=s.width/s.spacingX*s.height/s.spacingY;
@@ -245,12 +248,12 @@ export function generatePattern(s: Settings): Pattern {
       const maskSample=s.rangeMask.enabled&&s.rangeMask.image?rangeSampler(s.rangeMask,s.width,s.height)(gx,gy):null;
       if(maskSample&&maskSample.distance<=0)continue;
       const t=fieldValue(gx,gy,s);
-      const baseSize=s.endpointSize?s.sizeStart+(s.sizeEnd-s.sizeStart)*t:s.minSize+(s.maxSize-s.minSize)*t;
+      const baseSize=s.mode==='uniform'?s.maxSize:s.endpointSize?s.sizeStart+(s.sizeEnd-s.sizeStart)*t:s.minSize+(s.maxSize-s.minSize)*t;
       const size=baseSize*(1+(hash(col,row,s.seed+3)*2-1)*s.randomSize/100*weight);
       if(size<.05 || gx-size*extent<0 || gy-size*extent<0 || gx+size*extent>s.width || gy+size*extent>s.height) continue;
       if(maskSample&&maskSample.distance<size*extent)continue;
-      const progress=morphValue(gx,s,sx,gy,sy),m=s.morph&&!s.combine?progress:0;
-      const rotation=s.rotation+(s.rotationGradient?s.rotationStart+(s.rotationEnd-s.rotationStart)*progress:0)+(hash(col,row,s.seed+4)*2-1)*s.randomRotation*weight;
+      const progress=morphValue(gx,s,sx,gy,sy),m=s.morph&&!s.combine&&s.mode!=='uniform'?progress:0;
+      const rotation=s.rotation+(s.rotationGradient&&s.mode!=='uniform'?s.rotationStart+(s.rotationEnd-s.rotationStart)*progress:0)+(hash(col,row,s.seed+4)*2-1)*s.randomRotation*weight;
       const a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
       const contours=(pair?[interpolateOutline(pair[0],pair[1],m)]:source).map(c=>c.map(p=>{
         const px=p.x*size, py=p.y*size;
