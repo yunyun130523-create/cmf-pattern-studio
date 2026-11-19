@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo python3 - <<'PYTHON'
           import pathlib, re
-          apt_sources = [pathlib.Path('/etc/apt/sources.list')]
+          apt_sources = [pathlib.Path('/etc/apt/sources.list'), pathlib.Path('/etc/apt/apt-mirrors.txt')]
           apt_sources += list(pathlib.Path('/etc/apt/sources.list.d').glob('*.sources'))
           apt_sources += list(pathlib.Path('/etc/apt/sources.list.d').glob('*.list'))
           apt_sources += list(pathlib.Path('/etc/apt/mirrors').glob('*.list'))
@@ -52,11 +52,13 @@ jobs:
               if apt_source.exists():
                   original = apt_source.read_text()
                   updated = re.sub(r'https?://[\w.-]*archive\.ubuntu\.com/ubuntu/?(?=\s|$)', 'https://archive.ubuntu.com/ubuntu/', original)
+                  updated = updated.replace('mirror+file:/etc/apt/apt-mirrors.txt', 'https://archive.ubuntu.com/ubuntu/')
                   updated = updated.replace('mirror+file:/etc/apt/mirrors/ubuntu.list', 'https://archive.ubuntu.com/ubuntu/')
                   updated = updated.replace('mirror+file:/etc/apt/mirrors/security.list', 'https://security.ubuntu.com/ubuntu/')
                   updated = updated.replace('http://security.ubuntu.com/ubuntu', 'https://security.ubuntu.com/ubuntu')
                   if updated != original:
                       apt_source.write_text(updated)
+                      print(f"Configured official HTTPS source: {apt_source}")
           pathlib.Path('/etc/apt/apt.conf.d/99-cmf-ci-network').write_text('Acquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::Retries "2";\n')
           PYTHON
       - name: Install test browsers on GitHub runner
