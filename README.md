@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。321 項測試與 51 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。324 項測試與 54 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 連接處一起蓬鬆 · 2.0.0-alpha.18（已發布）
+
+連續帶與長條合併車縫改用局部截面高度，依各位置上下縫邊的距離建立弧面。窄接帶、轉角與中央寬區共用完整的隆起高度，不再只依整列外框模糊，改善接帶看起來平坦的問題。零間距及手動合併形成的長條輪廓也可套用；不含連續帶或長條合併的配置沿用原有光影。
+
+沿用原本的蓬鬆、縫邊寬度、光源與細皮紋設定，旋轉後光源維持畫布方向，蓬鬆設為 0 可回到平面。輪廓與縫線不拆開、不新增內部縫線；尺寸與 mm 單位保持原設定。SVG 使用漸層、剪裁與光照濾鏡，未嵌入點陣圖片；PNG 與預覽共用相同渲染。JSON 不增加必填欄位。
 
 ## 車縫連續帶與 mm 實體尺寸 · 2.0.0-alpha.17（已發布）
 

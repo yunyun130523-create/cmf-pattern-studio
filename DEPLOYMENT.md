@@ -6,7 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 車縫連續帶與 mm 尺寸的最新驗證
+## 連接處一起蓬鬆的最新驗證
+
+版本 2.0.0-alpha.18：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44429648960
+
+- 原始碼提交：d2000a91eed7a2446c8a18144da0e0454462d109。
+- 324 項測試、54 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 局部截面高度讓窄接帶與中央寬區都形成弧面，涵蓋連續帶及長條合併輪廓。旋轉光源、細皮紋、縫線與尺寸保持原設定；蓬鬆 0 可回到平面。
+- 原生 PNG 像素驗收確認窄帶與寬區的明暗跨度都明顯高於平面；SVG 保留漸層／剪裁與向量幾何，不嵌入圖片；JSON 還原保留相同蓬鬆效果。
+- 正式站 HTTP 200，3,941,780 bytes，與已測建置逐位元組一致；SHA256：900c02c88a9c8c26531963ab5e2ea4f636d6528c40028636993a4f84de575a67。
+
+## 車縫連續帶與 mm 尺寸的歷史驗證
 
 版本 2.0.0-alpha.17：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44270123066 （第二次執行）
 
