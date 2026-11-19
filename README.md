@@ -6,13 +6,21 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。337 項測試與 60 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。342 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 開放 CAD 原線車縫與圖示刪除 · 2.0.0-alpha.21（已發布）
+
+DWG 可包含開放 Polyline、Arc、Line 與分岔，不要求先封閉。這類圖案在電腦車縫沿原始中心線排列，不補接起點與終點；預覽、單／雙針、整片泡棉及 SVG／PNG／JSON 使用同一組線路。封閉輪廓維持既有行為。圖案填色預覽使用細線外框，實際車縫使用獨立保存的原線，避免誤把線寬當成兩條縫線。
+
+圖案設計與電腦車縫的 A／B 上傳圖示皆可按右上角 × 直接刪除；刪除會同步清除選取參照並保存，可使用「復原」還原。
+
+342 項測試、63 項桌面 Chromium／Android Chromium／iPhone WebKit 驗收通過，正式站檔案已與本機建置比對一致。
 
 ## 圖示記憶與直向連續帶 · 2.0.0-alpha.20（已發布）
 

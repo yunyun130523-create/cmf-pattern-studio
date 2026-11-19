@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 開放 CAD 原線車縫與圖示刪除（已發布）
+
+版本 2.0.0-alpha.21：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44465243270
+
+- 原始碼提交：ed6f10926175241c137b775b11bc10d80be78d48。
+- 342 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 真正 DWG 開放線段、圓弧與 T 分岔可匯入，不強制封閉。JSON／本機圖案庫保存獨立 stitchPaths，車縫沿原線生成，保留開口，不用填色外框當車縫線。原有封閉圖案保持相容。
+- 單一橫／豎線不除以零；L 形沒有斜向封口線。單／雙針、泡棉、SVG／PNG／JSON 與實際 DWG 背景處理器流程均驗證。
+- A／B 上傳圖示皆能直接刪除，清除所有失效選取，支援復原及重新開啟後保持刪除。本機完整測試首次有一項既有 UI 流程因 5 秒等待超時，單獨重跑 16 項全部通過；正式 CI 完整 342 項通過，未放寬斷言。
+- 正式站 HTTP 200，4,453,078 bytes，與已測建置逐位元組一致；SHA256：fbb755144c63fd9f7da1c333fc8a521a93c0dc315d48921846cb45e4d63e86c4。
+
 ## 圖示記憶、直向連續帶與圖片縫線銳利度（已發布）
 
 版本 2.0.0-alpha.20：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44451563449
