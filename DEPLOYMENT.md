@@ -6,6 +6,14 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 圖示記憶與直向連續帶（待發布）
+
+版本 2.0.0-alpha.20，功能提交 c1db90e。
+
+- 本機建置及公開檔案檢查通過，334 項測試全數通過。
+- 桌面與 Android Chromium 共 6 項新增／更新操作驗收通過：精簡長方形與旋轉、實際 PNG／JPEG 上傳和手動記憶、重新開啟後重用、直向帶接合、PNG／SVG／JSON。
+- 自動審核阻擋直接推送 main，理由為公開 Pages 部署需要明確授權。尚未推送，尚無新版完整 CI 或正式站驗證；正式站仍為下方 alpha.19。
+
 ## 整片泡棉壓縫的最新驗證
 
 版本 2.0.0-alpha.19：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44437093114
