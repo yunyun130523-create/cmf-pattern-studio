@@ -6,7 +6,19 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
-## 連接處一起蓬鬆的最新驗證
+## 整片泡棉壓縫的最新驗證
+
+版本 2.0.0-alpha.19：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44437093114
+
+- 功能提交：c3f09451bfcddb2fa6698c2e90bbf3d174a3ce05；驗證提交：fe0e9edc04b57a164ea66a9785805d230539d42f。
+- 326 項測試、54 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 以整片泡棉距離／恢復高度取代局部輪廓 Alpha 膨起。縫線壓低，圖案內外、窄接帶與間隙都隆起，保留幾何、mm 尺寸、雙針兩色、細皮紋與 JSON 相容性。
+- 原生 PNG 驗收分別量測圖案內部、窄帶與圖案外間隙，三者明暗跨度均顯著高於平面。SVG 使用簡化的封閉向量等高面，不嵌入圖片，預覽與匯出一致。
+- 高度幾何快取及資料量上限避免過量等高線；多次重建的複合 UI 流程設定 15 秒等待上限，保留全部功能斷言。首輪流程 5 秒超時後，修正等待設定並完整重跑通過。
+- 正式站 HTTP 200，3,943,771 bytes，與已測建置逐位元組一致；SHA256：f355bb37153a6a34b545ec8517e9afba87fffa97c853cbe668d226cbdab1fc75。
+- 實際渲染預覽：https://yunyun130523-create.github.io/cmf-pattern-studio/foam-relief-preview.png 。310,724 bytes，HTTP 200，與提交圖檔一致；SHA256：c3687afe281fb2f4207f2549157b6e854f4b17b69e3bbe45c6de79ced2ffebc2。
+
+## 連接處一起蓬鬆的歷史驗證
 
 版本 2.0.0-alpha.18：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44429648960
 
