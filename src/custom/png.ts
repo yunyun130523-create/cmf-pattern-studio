@@ -1,3 +1,4 @@
+import {simplifyContour} from './contours';
 import {decodePhotograph} from '../halftone/image';
 import {imageBytes} from '../halftone/model';
 import { filledGeometry, makeCustomShape, mergeGeometry, type CustomShape } from './geometry';
@@ -9,13 +10,6 @@ export function defaultTraceOptions(r:Raster):TraceOptions{
   const ids=[0,r.width-1,(r.height-1)*r.width,r.width*r.height-1];
   const light=ids.reduce((n,id)=>n+(.2126*r.data[id*4]+.7152*r.data[id*4+1]+.0722*r.data[id*4+2]),0)/4;
   return{mode:transparent>r.width*r.height*.01?'alpha':'threshold',threshold:128,invert:transparent===0&&light<128,removeBackground:true,smoothing:15};
-}
-function simplify(points:Point[],epsilon:number):Point[]{
-  function rdp(p:Point[],depth=0):Point[]{if(depth>40)throw new Error('輪廓太複雜，請先簡化圖片。');if(p.length<=2)return p;const a=p[0],b=p.at(-1)!,dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;let best=-1,index=0;
-    for(let i=1;i<p.length-1;i++){const t=den?Math.max(0,Math.min(1,((p[i].x-a.x)*dx+(p[i].y-a.y)*dy)/den)):0;const d=Math.hypot(p[i].x-a.x-t*dx,p[i].y-a.y-t*dy);if(d>best){best=d;index=i;}}
-    return best>epsilon?[...rdp(p.slice(0,index+1),depth+1).slice(0,-1),...rdp(p.slice(index),depth+1)]:[a,b];}
-  let opposite=1;for(let i=2;i<points.length;i++)if(Math.hypot(points[i].x-points[0].x,points[i].y-points[0].y)>Math.hypot(points[opposite].x-points[0].x,points[opposite].y-points[0].y))opposite=i;
-  return[...rdp(points.slice(0,opposite+1)).slice(0,-1),...rdp([...points.slice(opposite),points[0]]).slice(0,-1)];
 }
 function smooth(ring:Point[]):Point[]{return ring.flatMap((p,i)=>{const q=ring[(i+1)%ring.length];return[{x:p.x*.75+q.x*.25,y:p.y*.75+q.y*.25},{x:p.x*.25+q.x*.75,y:p.y*.25+q.y*.75}];});}
 export function traceRaster(r:Raster,options:TraceOptions,name='PNG 向量圖案'):CustomShape{
@@ -53,7 +47,7 @@ export function traceRaster(r:Raster,options:TraceOptions,name='PNG 向量圖案
       const rank=(dir:number)=>{const turn=(dir-current.dir+4)%4;return turn===1?0:turn===0?1:turn===3?2:3;};choices.sort((a,b)=>rank(edges[a].dir)-rank(edges[b].dir));index=choices[0];
     }
     if(!closed)throw new Error('無法建立封閉輪廓，請簡化圖片。');
-    let ring=simplify(loop,options.smoothing/100*2.5);if(ring.length<3)continue;
+    let ring=simplifyContour(loop,options.smoothing===0?0:1.3+options.smoothing/100*2.5);if(ring.length<3)continue;
     if(options.smoothing>60)ring=smooth(ring);
     contours.push(ring.map(p=>({x:p.x*(r.sourceWidth??w)/w,y:p.y*(r.sourceHeight??h)/h})));
     if(contours.length>128)throw new Error('圖片包含太多零碎輪廓，請先清除雜訊或簡化圖案。');
