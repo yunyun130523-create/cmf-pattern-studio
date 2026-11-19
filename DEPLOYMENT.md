@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 獨立間距與 A／B 圖形旋轉（已發布）
+
+版本 2.0.0-alpha.23：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44474859237
+
+- 間距提交：f8aaae35c9a0ad0ebcb766ff69917f53e3c45be4；旋轉提交：dbae07e30762750565400a6c1bfee3402aef3749；發布驗證提交：3e02d145b5168909a8627f4dfee7fd4967ba6b0b。
+- 353 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 開放 CAD 與封閉幾何均使用獨立橫／直向 mm 間距，0 貼齊，負值重疊；舊 spacing 專案保持原排列。實際週期、單軸合併、原線保留、漸變與 JSON 皆有回歸。
+- A／B 先依實際寬高縮放再各自旋轉、對齊與相加。上傳線路不補封口，連續帶旋轉後仍延伸，整片旋轉另行保留。角度與間距均更新幾何快取並清除失效區塊選取。
+- 桌面／手機實際上傳 CAD，調整 A＝90°、B＝−30°、橫距＝3 mm、直距＝−2 mm，再驗證漸變與 SVG／PNG／JSON。零間距 PNG 仍無內部分隔線，JSON 檢查改為兩個獨立間距欄位，保留全部幾何／像素斷言。存檔斷言等待上限改為 5 秒，以容納 350 ms debounce、圖案庫載入及泡棉計算；正式流程全數通過。
+- 正式站 HTTP 200，4,456,296 bytes，與本機已測建置逐位元組一致；SHA256：d997de247a5608c6d6efc647c2cb32d4b8a567c76709f6836a67536dabde9388。
+
 ## 開放車縫漸變合成修正（已發布）
 
 版本 2.0.0-alpha.22：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44468767356

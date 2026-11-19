@@ -6,13 +6,21 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。345 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。353 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 橫直獨立間距與 A／B 旋轉 · 2.0.0-alpha.23（已發布）
+
+電腦車縫的幾何／自訂排列增加「車縫橫向間距」與「車縫直向間距」，單位 mm，各自調整。0 讓單元外框貼齊，負值可重疊靠攏斜邊；封閉圖形任一方向貼齊或重疊時會移除內部分隔線，開放 CAD 保留原線路。舊專案 spacing 繼續同時控制兩軸，新設定以 spacingX／spacingY 保存。
+
+A、B 尺寸卡片各增加 −180°～180° 的獨立圖形旋轉。寬高為旋轉前的實際尺寸，先縮放再旋轉、對齊與相加；上傳 CAD、單／雙針、連續帶及漸變 Pattern 均沿用實際幾何。下方「車縫旋轉」仍控制整片排列。旋轉與間距保存在 JSON，重設會清除新參數。
+
+353 項測試、63 項桌面 Chromium／Android Chromium／iPhone WebKit 驗收通過，正式站已比對與已測建置一致。
 
 ## 自訂開放車縫的 Gradient Pattern · 2.0.0-alpha.22（已發布）
 
