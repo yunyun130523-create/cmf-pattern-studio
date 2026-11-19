@@ -1,0 +1,11 @@
+import {it,expect} from 'vitest';
+import {DEFAULTS,projectJSON,parseProject} from '../src/engine';
+import {bounds,makeLineShape} from '../src/custom/geometry';
+import {stitchOperands} from '../src/stitch/merge';
+import {stitchGeometry,stitchSVG} from '../src/stitch/engine';
+import {validateStitch} from '../src/stitch/model';
+const base={...DEFAULTS,width:300,height:200,stitch:{...DEFAULTS.stitch,layout:'shape' as const,mergeUnits:'mm' as const,shape:'horizontal' as const,width:40,height:20,mergeShape:'horizontal' as const,mergeWidth:10,mergeHeight:30,spacing:4}};
+it('A／B 分別旋轉，實際 mm 寬高不被壓回，未旋轉的一側保持原樣',()=>{const [a,b]=stitchOperands(base),[ra,rb]=stitchOperands({...base,stitch:{...base.stitch,shapeRotation:90}});expect(bounds(ra).width).toBeCloseTo(20);expect(bounds(ra).height).toBeCloseTo(40);expect(rb).toEqual(b);const [aa,bb]=stitchOperands({...base,stitch:{...base.stitch,mergeRotation:-90}});expect(aa).toEqual(a);expect(bounds(bb).width).toBeCloseTo(30);expect(bounds(bb).height).toBeCloseTo(10);});
+it('上傳開放線路以原線旋轉，保留開口與新的排列間距',()=>{const shape=makeLineShape([[{x:0,y:0},{x:20,y:0},{x:20,y:10}]],{name:'L',source:'DWG'}),s={...base,customShapes:[shape],stitch:{...base.stitch,shape:shape.id,shapeRotation:90,spacingX:3,spacingY:0}},p=stitchGeometry(s.width,s.height,s.stitch,s);expect(p.seams.length).toBeGreaterThan(0);expect(p.seams.every(e=>Math.abs(e.a.x-e.b.x)<.002||Math.abs(e.a.y-e.b.y)<.002)).toBe(true);expect(stitchSVG(s)).not.toMatch(/NaN|Infinity/);});
+it('旋轉後的連續帶仍延伸整欄，畫布內沒有端點封口',()=>{const s={...base,stitch:{...base.stitch,shape:'band' as const,shapeRotation:90,height:6,stagger:false}},p=stitchGeometry(s.width,s.height,s.stitch,s);expect(p.seams.length).toBeGreaterThan(0);expect(p.seams.filter(e=>Math.abs(e.a.y-e.b.y)<.01&&e.a.y>0&&e.a.y<s.height&&Math.min(e.a.x,e.b.x)<150&&Math.max(e.a.x,e.b.x)>150)).toHaveLength(0);});
+it('兩側角度 JSON 重現；舊專案不新增旋轉，非法角度拒絕',()=>{const s={...base,stitch:{...base.stitch,shapeRotation:35,mergeRotation:-60,mergeEnabled:true}};expect(parseProject(projectJSON(s)).stitch).toMatchObject({shapeRotation:35,mergeRotation:-60});expect(stitchOperands(parseProject(projectJSON(s)))).toEqual(stitchOperands(s));expect(validateStitch(base.stitch).shapeRotation).toBeUndefined();expect(()=>validateStitch({...base.stitch,mergeRotation:181})).toThrow();});

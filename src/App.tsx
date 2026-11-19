@@ -54,7 +54,7 @@ export default function App() {
   const [joinPicking,setJoinPicking]=useState(false),[joinSelected,setJoinSelected]=useState<number[]>([]),[joinError,setJoinError]=useState('');
   const update=useCallback((patch:Partial<Settings>|Settings)=>{
     const next={...current.current,...patch};
-    const geometryKeys=['mergeUnits','layout','shape','width','height','spacing','spacingX','spacingY','stagger','irregularity','seed','mergeEnabled','mergeShape','mergeWidth','mergeHeight','mergeAlign','mergeAxis','mergeOffsetX','mergeOffsetY'] as const;
+    const geometryKeys=['mergeUnits','layout','shape','width','height','spacing','spacingX','spacingY','shapeRotation','mergeRotation','stagger','irregularity','seed','mergeEnabled','mergeShape','mergeWidth','mergeHeight','mergeAlign','mergeAxis','mergeOffsetX','mergeOffsetY'] as const;
     const structural=['width','height','aspect','customScaleX','customScaleY','proportions'].some(k=>!Object.is(next[k as keyof Settings],current.current[k as keyof Settings]))||geometryKeys.some(k=>next.stitch[k]!==current.current.stitch[k]);
     if(structural){setJoinPicking(false);setJoinSelected([]);setJoinError('');if(next.stitch.joinGroups===current.current.stitch.joinGroups&&next.stitch.joinGroups.length)next.stitch={...next.stitch,joinGroups:[]};}
     if(next.morph&&morphIssue(next))next.morph=false;
@@ -72,7 +72,7 @@ export default function App() {
   useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(''),4200);return()=>clearTimeout(timer);},[toast]);
   useEffect(()=>{const timer=setTimeout(()=>{try{localStorage.setItem(STORAGE,projectJSON(s));setSaved(true);setStorageOK(true);}catch{setStorageOK(false);}},350);return()=>clearTimeout(timer);},[s]);
   const stitchMode=s.stitch.enabled,imageMode=!stitchMode&&s.halftone.enabled&&!!s.halftone.image,grainMode=!stitchMode&&s.grain.enabled;
-  const stitchData=useMemo(()=>stitchMode?stitchGeometry(s.width,s.height,s.stitch,s):null,[s.width,s.height,s.aspect,s.customScaleX,s.customScaleY,s.proportions,s.customShapes,s.stitch.layout,s.stitch.shape,s.stitch.width,s.stitch.height,s.stitch.rotation,s.stitch.spacing,s.stitch.spacingX,s.stitch.spacingY,s.stitch.stagger,s.stitch.irregularity,s.stitch.seed,s.stitch.mergeUnits,s.stitch.mergeEnabled,s.stitch.mergeShape,s.stitch.mergeWidth,s.stitch.mergeHeight,s.stitch.mergeAlign,s.stitch.mergeAxis,s.stitch.mergeOffsetX,s.stitch.mergeOffsetY,s.stitch.corner,s.stitch.joinGroups,stitchMode]);
+  const stitchData=useMemo(()=>stitchMode?stitchGeometry(s.width,s.height,s.stitch,s):null,[s.width,s.height,s.aspect,s.customScaleX,s.customScaleY,s.proportions,s.customShapes,s.stitch.layout,s.stitch.shape,s.stitch.width,s.stitch.height,s.stitch.rotation,s.stitch.spacing,s.stitch.spacingX,s.stitch.spacingY,s.stitch.shapeRotation,s.stitch.mergeRotation,s.stitch.stagger,s.stitch.irregularity,s.stitch.seed,s.stitch.mergeUnits,s.stitch.mergeEnabled,s.stitch.mergeShape,s.stitch.mergeWidth,s.stitch.mergeHeight,s.stitch.mergeAlign,s.stitch.mergeAxis,s.stitch.mergeOffsetX,s.stitch.mergeOffsetY,s.stitch.corner,s.stitch.joinGroups,stitchMode]);
   const stitchPreview=useMemo(()=>stitchMode?stitchMarkup(s,stitchData!):'',[s,stitchMode,stitchData]);
   const geometrySettings=useRef(s);if((Object.keys(s) as (keyof Settings)[]).some(k=>k!=='grain'&&!Object.is(s[k],geometrySettings.current[k])))geometrySettings.current=s;
   const patternInput=geometrySettings.current;
