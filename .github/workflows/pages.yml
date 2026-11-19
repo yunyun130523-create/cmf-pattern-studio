@@ -40,6 +40,21 @@ jobs:
         run: npm run build
       - name: Test geometry and controls
         run: npm test
+      - name: Use official HTTPS Ubuntu package mirror
+        run: |
+          sudo python3 - <<'PYTHON'
+          import pathlib, re
+          apt_sources = [pathlib.Path('/etc/apt/sources.list')]
+          apt_sources += list(pathlib.Path('/etc/apt/sources.list.d').glob('*.sources'))
+          apt_sources += list(pathlib.Path('/etc/apt/sources.list.d').glob('*.list'))
+          for apt_source in apt_sources:
+              if apt_source.exists():
+                  original = apt_source.read_text()
+                  updated = re.sub(r'https?://[\w.-]*archive\.ubuntu\.com/ubuntu/?(?=\s|$)', 'https://archive.ubuntu.com/ubuntu/', original)
+                  if updated != original:
+                      apt_source.write_text(updated)
+          pathlib.Path('/etc/apt/apt.conf.d/99-cmf-ci-network').write_text('Acquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::Retries "2";\n')
+          PYTHON
       - name: Install test browsers on GitHub runner
         run: npx playwright install --with-deps chromium webkit
       - name: Test desktop and mobile browsers
