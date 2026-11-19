@@ -6,6 +6,16 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 開放車縫漸變合成修正（已發布）
+
+版本 2.0.0-alpha.22：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44468767356
+
+- 原始碼提交：0979eabb2c3b0cfcdfaae00d770b546a87221e5a。
+- 345 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 原因：開放線路以雙點線段保存，原合成邏輯要求孔紋中心在封閉格內，導致全部被排除。修正為開放線路的整張畫布模式使用整片皮革，每格模式使用旋轉／錯位後的排列單元；獨立於泡棉線段資料，沒有補封口。
+- 驗證原線保留、縫邊距離、雙針、方向切換、旋轉／錯位的每格重複，以及實際 DWG 上傳、SVG／PNG／JSON 匯出。封閉格的區域限制保持原行為。
+- 正式站 HTTP 200，4,453,444 bytes，與本機已測建置逐位元組一致；SHA256：c9d45648363b08d3dc260e5d37a9abed94bf5b8ef75c2180be3d31f3a1c7910f。
+
 ## 開放 CAD 原線車縫與圖示刪除（已發布）
 
 版本 2.0.0-alpha.21：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44465243270

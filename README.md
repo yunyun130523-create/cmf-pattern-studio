@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。342 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。345 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 自訂開放車縫的 Gradient Pattern · 2.0.0-alpha.22（已發布）
+
+修正開放 CAD 線段沒有封閉面積、導致所有漸變孔紋被篩除的問題。整張畫布模式在皮革表面連續產生漸變，每格模式依車縫排列單元重複；兩者都依實際縫線、雙針距離及留白排除碰撞。線路不補封口，既有封閉圖形保持原來的區域限制。
+
+已記住的 CAD 圖案不需重新上傳。方向、尺寸、密度、範圍與 JSON 還原繼續使用原有漸變設定；預覽和 SVG／PNG 匯出一致。345 項測試、63 項跨瀏覽器驗收通過。
 
 ## 開放 CAD 原線車縫與圖示刪除 · 2.0.0-alpha.21（已發布）
 
