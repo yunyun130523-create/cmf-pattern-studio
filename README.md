@@ -6,13 +6,23 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。353 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。361 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 無漸變、mm 與開放尺寸輸入 · 2.0.0-alpha.25（已發布）
+
+漸變模式新增「無漸變」，圖案設計與車縫皆可選用。所有圖案使用同一尺寸、方向與形狀，不受反轉、邊界漸變或先前的隨機尺寸影響；可用單一尺寸欄位調整，並可隨時切回原有四種漸變。
+
+圖案尺寸、起終尺寸、中心間距、畫布、自訂圖案及圖片點陣的物理長度改以 mm 輸入。滑桿旁可直接輸入數值，最大尺寸、起終尺寸及點尺寸不再有 40／80 px 的固定上限；大間距也可直接輸入。最小尺寸仍須小於或等於最大尺寸。角度與比例保留 °／%，影像取樣及輸出解析度是像素資訊。
+
+舊 JSON 使用的座標與幾何保留，介面按既有 96 dpi 基準換算 mm；單純聚焦、離開欄位不會將舊精確數值重新四捨五入。SVG 外框與 CAD 匯出使用 mm，PNG 解析度保持既有倍率設定。
+
+361 項測試、63 項桌面 Chromium／Android Chromium／iPhone WebKit 驗收通過。包含 80 mm 圖案、100 mm 間距的實際操作與 JSON／SVG 匯出，以及大尺寸儲存重開、舊專案不縮放、車縫與無漸變回歸。
 
 ## 橫直獨立間距與 A／B 旋轉 · 2.0.0-alpha.23（已發布）
 

@@ -6,6 +6,18 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 無漸變、mm 長度與取消圖案尺寸固定上限（已發布）
+
+版本 2.0.0-alpha.25：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44500855167
+
+- 無漸變提交：d2cd4e970013c6578c0d24398069ce335d744648；mm／尺寸提交：9ea9bbbf0c70bd8db46300bfd9254d3efbf3715c；發布驗證提交：1fe94e34ed9dacd423f916ae4118e60a84ed5853。
+- 361 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- uniform 模式固定尺寸、方向與形狀，沿用同一預覽與匯出幾何；原有四種模式仍可切換，JSON 保存新模式。
+- 長度介面集中換算 mm，原 JSON 座標不重新縮放。最大／起終／點尺寸取消固定上限，以有限正數驗證、保留最小≤最大關係；直接輸入數值與滑桿共用同一物理長度。
+- 實際操作 80 mm 圖案及 100 mm 間距，檢查 SVG mm 外框、JSON、舊設計聚焦離開不改變幾何、儲存重開、漸變車縫、零間距 PNG 及上傳 CAD 匯出。
+- 發布環境固定為 Playwright 支援的 Ubuntu 24.04。慢速下載由 /etc/apt/apt-mirrors.txt 的區域來源造成；診斷確認 mirror+file 間接來源後，改為官方 HTTPS URIs。暫時診斷工作流程已刪除，保留完整驗收，安裝成功後正常發布。
+- 正式站 HTTP 200，4,460,172 bytes，與本機已測建置逐位元組一致；SHA256：11019604b7781562dbfb877587df1d06e2df4d02531ef8d91a77a80557f8f514。
+
 ## 獨立間距與 A／B 圖形旋轉（已發布）
 
 版本 2.0.0-alpha.23：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44474859237
