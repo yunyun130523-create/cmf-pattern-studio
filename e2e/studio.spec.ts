@@ -39,6 +39,18 @@ test('真正 JPG 上傳、Worker／Canvas、尺寸／密度、SVG 與 JSON 還�
 
 });
 
+test('中央圖片完整 A／B 形狀漸變、連續更新與失效 GPU 影像仍保留工作台',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('Page crashed'));const image=new PNG({width:64,height:64});for(let y=0;y<64;y++)for(let x=0;x<64;x++){const ink=x>=25&&x<39&&y>=25&&y<39;image.data.set([ink?0:255,ink?0:255,ink?0:255,255],(y*64+x)*4);}
+ const [picker]=await Promise.all([page.waitForEvent('filechooser'),page.getByRole('button',{name:'圖片轉點陣',exact:true}).click()]);await picker.setFiles({name:'central-logo.png',mimeType:'image/png',buffer:PNG.sync.write(image)});await ready(page);
+ await page.getByRole('button',{name:'六角形',exact:true}).click();await page.getByRole('button',{name:'結束長方形',exact:true}).click();await page.getByRole('switch',{name:'啟用形狀漸變',exact:true}).click();await ready(page);
+ const first=(await exportFile(page,'SVG')).toString();await range(page,'結束圖形旋轉',75);await ready(page);expect((await exportFile(page,'SVG')).toString()).not.toBe(first);
+ await page.evaluate(()=>{const proto=CanvasRenderingContext2D.prototype,original=proto.drawImage;proto.drawImage=function(...args:any[]){if(typeof ImageBitmap!=='undefined'&&args[0] instanceof ImageBitmap)throw new DOMException('Simulated lost bitmap','InvalidStateError');return (original as any).apply(this,args);};});
+ for(let i=0;i<18;i++){await range(page,'結束X 比例',60+i*5);await range(page,'點陣密度',80+i*3);}
+ await ready(page);for(let i=0;i<3;i++){await page.getByRole('checkbox',{name:'啟用圖片點陣模式',exact:true}).uncheck();await expect(page.getByTestId('halftone-canvas')).toHaveCount(0);await page.getByRole('checkbox',{name:'啟用圖片點陣模式',exact:true}).check();await ready(page);}
+ await expect(page.getByRole('button',{name:'圖片轉點陣',exact:true})).toBeVisible();await expect(page.getByRole('heading',{name:'工作台暫時中斷',exact:true})).toHaveCount(0);await expect(page.locator('.preview-render-error')).toHaveCount(0);expect(errors).toEqual([]);
+ const p=JSON.parse((await exportFile(page,'JSON')).toString()).settings;expect(p.morph).toBe(true);expect(p.proportions.end.rectangle.x).toBe(145);expect(p.halftone.image.name).toBe('central-logo.png');
+});
+
 test('真正透明 PNG 上傳與高解析度透明 PNG 下載',async({page})=>{
  const image=new PNG({width:32,height:32});for(let y=0;y<32;y++)for(let x=0;x<32;x++){const ink=(x-16)**2+(y-16)**2<100;image.data.set([0,0,0,ink?255:0],(y*32+x)*4);}
  const [chooser]=await Promise.all([page.waitForEvent('filechooser'),page.getByRole('button',{name:'圖片轉點陣',exact:true}).click()]);await chooser.setFiles({name:'transparent-logo.png',mimeType:'image/png',buffer:PNG.sync.write(image)});await ready(page);await page.getByRole('checkbox',{name:'透明背景',exact:true}).check();await ready(page);

@@ -1,6 +1,6 @@
 import {patternGrid} from '../grid';
 import { rangeSampler } from '../mask/engine';
-import { fastCircle, clamp, fieldValue, hash, interpolateOutline, morphOutlines, morphValue, patternContours, type Pattern, type Point, type Settings } from '../engine';
+import { fastCircle, clamp, fieldValue, hash, interpolateOutline, morphOutlines, morphValue, morphProgress, patternContours, type Pattern, type Point, type Settings } from '../engine';
 import { imageBytes, type HalftoneSettings, type SampleImage } from './model';
 import { signedArea } from '../custom/geometry';
 export function imageRect(h:HalftoneSettings,width:number,height:number){const im=h.image!;const cw=im.width*h.crop.width,ch=im.height*h.crop.height,base=(h.fit==='cover'?Math.max:Math.min)(width/cw,height/ch),w=cw*base*h.zoom,hh=ch*base*(h.aspectLock?h.zoom:h.zoomY);return{x:(width-w)/2+h.offsetX/100*width,y:(height-hh)/2+h.offsetY/100*height,width:w,height:hh};}
@@ -22,9 +22,9 @@ function simplified(c:Point[]):Point[]{return c.filter((p,i)=>{const a=c[(i+c.le
 export function generateHalftone(s:Settings,compactCircles=false):Pattern{
  const h=s.halftone;if(!h.image)return{glyphs:[],effectiveSpacingX:h.spacingX,effectiveSpacingY:h.spacingY,limited:false,coverage:0};
  let source=patternContours(s);if(fastCircle(s))source=[Array.from({length:32},(_,i)=>({x:Math.cos(i*Math.PI/16)*.5,y:Math.sin(i*Math.PI/16)*.5}))];else if(!s.morph)source=source.map(c=>{const simple=simplified(c);return simple.length>=3?simple:c;});
- const pair=s.morph&&!s.combine?morphOutlines(s):null,n=pair?pair[0].length:source.reduce((a,c)=>a+c.length,0),cap=Math.min(60000,Math.floor(1800000/n));
+ const pair=s.morph&&!s.combine&&s.mode!=='uniform'?morphOutlines(s):null,n=pair?pair[0].length:source.reduce((a,c)=>a+c.length,0),cap=Math.min(60000,Math.floor(1800000/n));
  const sx=h.spacingX/Math.sqrt(h.density/100),sy=h.spacingY/Math.sqrt(h.density/100)*(h.layout==='hex'?Math.sqrt(3)/2:1),layout=patternGrid(s.width,s.height,sx,sy,cap),dx=layout.x,dy=layout.y;
- const sample=sampler(h,s.width,s.height),glyphs:Pattern['glyphs']=[];let area=0;
+ const sample=sampler(h,s.width,s.height),glyphs:Pattern['glyphs']=[],samples:{x:number;y:number;d:number;size:number;randomRotation:number}[]=[];let area=0,minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
  const extent=Math.max(...(pair?[...pair[0],...pair[1]]:source.flat()).map(p=>Math.hypot(p.x,p.y)));
  for(let row=0,y=dy===0?s.height/2:dy/2;(dy>0||row===0)&&y<s.height;row++,y+=dy)for(let col=0,x=dx===0?s.width/2:dx/2+(h.layout==='stagger'||h.layout==='hex'?row%2*dx/2:0);(dx>0||col===0)&&x<s.width;col++,x+=dx){
  const jitter=h.jitter,gx=x+(hash(col,row,s.seed+21)-.5)*dx*jitter/100,gy=y+(hash(col,row,s.seed+22)-.5)*dy*jitter/100,d=sample(gx,gy);if(d===null||h.skipWhite&&d<=1-h.whiteThreshold/255)continue;
@@ -33,9 +33,14 @@ export function generateHalftone(s:Settings,compactCircles=false):Pattern{
  const size=(h.minSize+(h.maxSize-h.minSize)*Math.sqrt(Math.max(0,d)))*(1+(hash(col,row,s.seed+24)*2-1)*h.randomSize/100)*field;
  if(maskSample&&maskSample.distance<size*extent)continue;
  if(size<.05||gx-size*extent<0||gy-size*extent<0||gx+size*extent>s.width||gy+size*extent>s.height)continue;
- const m=s.morph&&!s.combine?morphValue(gx,s,dx,gy,dy):0,rotation=s.rotation+(hash(col,row,s.seed+25)*2-1)*h.randomRotation+(s.rotationGradient?s.rotationStart+(s.rotationEnd-s.rotationStart)*m:0),a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
+ samples.push({x:gx,y:gy,d,size,randomRotation:(hash(col,row,s.seed+25)*2-1)*h.randomRotation});minX=Math.min(minX,gx);maxX=Math.max(maxX,gx);minY=Math.min(minY,gy);maxY=Math.max(maxY,gy);
+ }
+ for(const {x:gx,y:gy,d,size,randomRotation} of samples){
+ const vertical=s.morphDirection==='vertical',lo=vertical?minY:minX,hi=vertical?maxY:maxX,position=vertical?gy:gx;
+ const m=pair?(s.morphDirection==='custom'?morphValue(gx,s,dx,gy,dy):morphProgress(hi>lo?(position-lo)/(hi-lo):0,s)):0;
+ const rotation=s.rotation+randomRotation+(s.rotationGradient?s.rotationStart+(s.rotationEnd-s.rotationStart)*m:0),a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
  const circle=fastCircle(s),contours=compactCircles&&circle?[]:(pair?[interpolateOutline(pair[0],pair[1],m)]:source).map(c=>c.map(p=>({x:Math.round((gx+(p.x*ca-p.y*sa)*size)*1000)/1000,y:Math.round((gy+(p.x*sa+p.y*ca)*size)*1000)/1000})));
- area+=circle?Math.PI*(size/2)**2:Math.abs(contours.reduce((sum,c)=>sum+signedArea(c),0));glyphs.push({x:gx,y:gy,size,t:d,morphT:m,rotation,randomT:jitter/100,points:contours[0]??[],contours,d:contours.map(c=>'M'+c.map(p=>`${p.x},${p.y}`).join('L')+'Z').join(' ')});
+ area+=circle?Math.PI*(size/2)**2:Math.abs(contours.reduce((sum,c)=>sum+signedArea(c),0));glyphs.push({x:gx,y:gy,size,t:d,morphT:m,rotation,randomT:h.jitter/100,points:contours[0]??[],contours,d:contours.map(c=>'M'+c.map(p=>`${p.x},${p.y}`).join('L')+'Z').join(' ')});
  }
  return{glyphs,effectiveSpacingX:dx,effectiveSpacingY:dy,limited:layout.limited,coverage:area/s.width/s.height*100};
 }

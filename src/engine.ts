@@ -220,10 +220,15 @@ export function morphValue(x: number, s: Settings, spacingX = s.spacingX, y=0, s
   const first = spacing / 2;
   const last = spacing===0?first:first + Math.max(0, Math.ceil((extent - first) / spacing) - 1) * spacing;
   const t = s.morphDirection==='custom'?projectedValue(x,y,s.morphStart,s.morphEnd,s.width,s.height):last > first ? clamp(((vertical?y:x) - first) / (last - first)) : 0;
-  const smooth = t * t * (3 - 2 * t), linearity = clamp(s.morphAmount / 100);
-  const u=(1 - linearity) * smooth + linearity * t;
+  return morphProgress(t,s);
+}
+/** Shape interpolation is independent of the size/brightness field. */
+export function morphProgress(progress:number,s:Settings):number {
+  const t=clamp(progress),smooth=t*t*(3-2*t),linearity=clamp(s.morphAmount/100);
+  const u=(1-linearity)*smooth+linearity*t;
   return (s.morphRangeStart+(s.morphRangeEnd-s.morphRangeStart)*u)/100;
 }
+
 export interface Glyph { x: number; y: number; size: number; t: number; morphT: number; rotation: number; randomT: number; points: Point[]; contours: Point[][]; d: string }
 export interface Pattern { glyphs: Glyph[]; effectiveSpacingX: number; effectiveSpacingY: number; limited: boolean; coverage: number }
 const n3 = (n: number) => Number(n.toFixed(3));
