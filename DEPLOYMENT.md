@@ -6,6 +6,20 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 預覽資源穩定性、錯誤恢復與圖片 A／B 變形（已發布）
+
+版本 2.0.0-alpha.33：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44704743475
+
+- 原始碼提交：1be0ba03bbe098698c8a6ee979a7a4f5e4fedc13。
+- 380 項測試、66 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 修正影像替換時先 close 舊 ImageBitmap、React 尚未提交新影像的時序風險；改為提交後釋放舊／略過的影像，卸載時釋放所有影像，忽略並釋放已卸載 Worker 的延遲回覆。
+- Canvas 重用暫存表面，完成後才替換預覽；失效的 GPU bitmap 回退至 packed 向量，失敗保留上一版。支援 contextlost／contextrestored 提示及重畫，背景提交失敗會清除忙碌狀態並顯示錯誤。
+- React 根節點新增 RecoveryBoundary，渲染例外顯示下載既有 JSON 備份與恢復已存設計的入口；不清除瀏覽器資料。只在本機 sessionStorage 記錄錯誤名稱、訊息與時間。
+- 圖片水平／垂直變形改以實際取樣後可見點陣的邊界為 A／B 錨點；中央小圖不再只取全畫布中段的形狀。自訂方向保留畫布座標，沿用共用形狀過渡曲線與起終比例，尺寸明暗計算獨立。
+- 測試覆蓋提交前不釋放、略過與卸載後資源釋放、失效影像回退、繪圖錯誤保留畫面、例外後備份及恢復、水平／垂直完整端點、自訂方向與 SVG／JSON 一致。
+- 原生瀏覽器用中央小 PNG 啟用 A／B 變形並調整 B 旋轉，確認 SVG 改變；連續調整 36 次、模擬 GPU bitmap drawImage 失敗、三次關閉／重啟圖片模式後仍可操作且沒有 pageerror／crash。這是瀏覽器與手機尺寸模擬，並非重現使用者實體裝置的所有崩潰；尚不能確認使用者所有白頁／分頁崩潰皆由同一原因造成。
+- 正式站 HTTP 200，4,469,469 bytes，與本機已測建置逐位元組一致；SHA256：3170939722a5a0d24adfaf4ef2c494f486c2128f0e9f5a00f1f2e25257827a39。
+
 ## 圖片模式漸變按鈕實際生效（已發布）
 
 版本 2.0.0-alpha.32：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44699411929

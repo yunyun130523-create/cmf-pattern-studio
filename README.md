@@ -6,13 +6,21 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。374 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。380 項測試與 66 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 預覽穩定性與圖片形狀漸變 · 2.0.0-alpha.33（已發布）
+
+修正預覽影像在 React 提交前過早釋放的時序風險，換圖完成後才釋放舊影像，並釋放未顯示及卸載後的影像。預覽重用暫存畫布，繪製完成後才替換畫面；失效的 GPU 影像改用向量資料重畫，失敗時保留上一版。React 渲染例外會顯示專案備份及恢復按鈕，避免只剩白頁。
+
+圖片的水平／垂直 A→B 形狀漸變改以實際可見點陣範圍計算，中央小圖也能完整到達兩端形狀；自訂方向仍使用畫布控制點。尺寸、明暗與形狀場保持獨立，SVG／PNG／JSON 使用相同幾何。
+
+這些修正處理可重現的繪圖失敗與資源時序風險，尚不能確認涵蓋使用者所有白頁或瀏覽器分頁崩潰情況。
 
 ## 圖片點陣漸變按鈕修正 · 2.0.0-alpha.32（已發布）
 
