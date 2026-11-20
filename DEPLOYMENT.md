@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 圖案設計操作順序調整（已發布）
+
+版本 2.0.0-alpha.29：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44690808184
+
+- 原始碼提交：3892c5c3c64ef8860ba99af34b4c958e182a3fcc。
+- 正式流程 370 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 圖片入口移為圖案來源，圖片上傳區後立即接 A／B 幾何形狀及比例旋轉；再依序排列、點陣尺寸與明暗、來源預覽及裁切、色彩、漸變。一般幾何模式同樣先選形狀與網格尺寸再設漸變。
+- 共用單一形狀控制，圖片設定收合後仍可調整形狀，展開沿用既有選擇；不改引擎或 JSON 格式。驗證原生上傳、顯示順序、收合／展開、形狀同步及 JSON 還原，桌面與手機尺寸無水平溢出。
+- 本機首次同時執行建置與驗收時曾出現頁面載入失敗及一項 5 秒測試超時；建置完成、獨立重跑後全部通過，未調寬測試時限。正式流程沒有失敗或重試。
+- 正式站 HTTP 200，4,465,169 bytes，與本機已測建置逐位元組一致；SHA256：592f974b3735a99c7da7d134c6449cd20bbfe609acefa8944a92b63d312c1344。
+
 ## 圖片轉點陣入口整合（已發布）
 
 版本 2.0.0-alpha.28：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44672360722
