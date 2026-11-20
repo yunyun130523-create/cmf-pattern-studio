@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 圖片模式漸變按鈕實際生效（已發布）
+
+版本 2.0.0-alpha.32：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44699411929
+
+- 原始碼提交：1ffe7117b7c2e6c3d3976ae1aec03b9187aea63b。
+- 374 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 原因：圖片運算只在 halftone.layout=gradient 時套用漸變場，上方卡片原本只更新 mode；預設 stagger 等排列會忽略場，造成選取變色但圖案不變。
+- 修正共享模式切換：啟用中的圖片點陣會同步切入漸變排列；規則模式清除圖片殘留的位置、旋轉與尺寸隨機。保留來源、裁切、點尺寸、間距與其他圖片參數，一般幾何及車縫不更動未使用的圖片設定。
+- 回歸五種模式及重複切換的實際輪廓、無漸變等尺寸、隨機還原、SVG／JSON 一致。原生上傳後在三種瀏覽器逐一切換六次，直接比對 Canvas 像素變化，並核對 JSON 模式及來源 ID。
+- 正式站 HTTP 200，4,464,803 bytes，與本機已測建置逐位元組一致；SHA256：50acd8632ab5314e0087c72960c69ca91190fbb05af50f4769aa36a0612ed387。
+
 ## 漸變與圖片入口並列、移除三項明暗滑桿（已發布）
 
 版本 2.0.0-alpha.31：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44696749009

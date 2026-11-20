@@ -6,13 +6,17 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。370 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。374 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 圖片點陣漸變按鈕修正 · 2.0.0-alpha.32（已發布）
+
+修正圖片轉點陣後，漸變按鈕只變更選取狀態、預覽未變化的問題。圖片模式點選中心擴散、水平、垂直、不規則或無漸變時，會同步啟用圖片的漸變排列，立即更新預覽及匯出。切回規則模式會清除圖片殘留的隨機位置、旋轉與尺寸擾動，保留來源圖片、裁切、尺寸與間距。
 
 ## 漸變與圖片入口並列 · 2.0.0-alpha.31（已發布）
 
