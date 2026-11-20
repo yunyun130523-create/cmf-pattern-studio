@@ -571,3 +571,5 @@ input[type=number]:hover::-webkit-inner-spin-button { opacity: 1; }
 .pattern-image-editor>.parameter-section:first-of-type{padding-top:10px}
 
 .preview-render-error{position:absolute;bottom:12px;left:16px;right:16px;z-index:4;padding:10px;border-radius:10px;background:var(--ui-bg-panel,#fff);color:var(--ui-text-readable);font-size:12px}.recovery-screen{max-width:620px;margin:15vh auto;padding:28px}.recovery-screen h1{font-size:22px}.recovery-screen p{line-height:1.8;color:var(--ui-text-readable)}.recovery-screen>div{display:flex;gap:12px;flex-wrap:wrap}
+
+.operand-morph{padding-top:72px;color:var(--ui-accent)}

@@ -234,7 +234,7 @@ export interface Pattern { glyphs: Glyph[]; effectiveSpacingX: number; effective
 const n3 = (n: number) => Number(n.toFixed(3));
 export function generatePattern(s: Settings): Pattern {
   if(s.halftone.enabled&&s.halftone.image)return generateHalftone(s);
-  const source=patternContours(s),pair=s.morph&&!s.combine&&s.mode!=='uniform'?morphOutlines(s):null;
+  const source=patternContours(s),pair=s.morph&&!s.combine?morphOutlines(s):null;
   const pointCount=pair?pair[0].length:source.reduce((n,c)=>n+c.length,0);
   const cap=Math.max(1,Math.min(12000,Math.floor(1200000/pointCount)));
   const grid=patternGrid(s.width,s.height,s.spacingX,s.spacingY,cap),sx=grid.x,sy=grid.y;
@@ -256,7 +256,7 @@ export function generatePattern(s: Settings): Pattern {
       const size=baseSize*(1+(hash(col,row,s.seed+3)*2-1)*s.randomSize/100*weight);
       if(size<.05 || gx-size*extent<0 || gy-size*extent<0 || gx+size*extent>s.width || gy+size*extent>s.height) continue;
       if(maskSample&&maskSample.distance<size*extent)continue;
-      const progress=morphValue(gx,s,sx,gy,sy),m=s.morph&&!s.combine&&s.mode!=='uniform'?progress:0;
+      const progress=morphValue(gx,s,sx,gy,sy),m=s.morph&&!s.combine?progress:0;
       const rotation=s.rotation+(s.rotationGradient&&s.mode!=='uniform'?s.rotationStart+(s.rotationEnd-s.rotationStart)*progress:0)+(hash(col,row,s.seed+4)*2-1)*s.randomRotation*weight;
       const a=rotation*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
       const contours=(pair?[interpolateOutline(pair[0],pair[1],m)]:source).map(c=>c.map(p=>{

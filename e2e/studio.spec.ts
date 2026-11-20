@@ -42,7 +42,7 @@ test('真正 JPG 上傳、Worker／Canvas、尺寸／密度、SVG 與 JSON 還�
 test('中央圖片完整 A／B 形狀漸變、連續更新與失效 GPU 影像仍保留工作台',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('Page crashed'));const image=new PNG({width:64,height:64});for(let y=0;y<64;y++)for(let x=0;x<64;x++){const ink=x>=25&&x<39&&y>=25&&y<39;image.data.set([ink?0:255,ink?0:255,ink?0:255,255],(y*64+x)*4);}
  const [picker]=await Promise.all([page.waitForEvent('filechooser'),page.getByRole('button',{name:'圖片轉點陣',exact:true}).click()]);await picker.setFiles({name:'central-logo.png',mimeType:'image/png',buffer:PNG.sync.write(image)});await ready(page);
- await page.getByRole('button',{name:'六角形',exact:true}).click();await page.getByRole('button',{name:'結束長方形',exact:true}).click();await page.getByRole('switch',{name:'啟用形狀漸變',exact:true}).click();await ready(page);
+ await page.getByRole('button',{name:'六角形',exact:true}).click();await page.getByRole('button',{name:'結束長方形',exact:true}).click();await expect(page.getByRole('switch',{name:'啟用形狀漸變',exact:true})).toHaveAttribute('aria-checked','true');await ready(page);
  const first=(await exportFile(page,'SVG')).toString();await range(page,'結束圖形旋轉',75);await ready(page);expect((await exportFile(page,'SVG')).toString()).not.toBe(first);
  await page.evaluate(()=>{const proto=CanvasRenderingContext2D.prototype,original=proto.drawImage;proto.drawImage=function(...args:any[]){if(typeof ImageBitmap!=='undefined'&&args[0] instanceof ImageBitmap)throw new DOMException('Simulated lost bitmap','InvalidStateError');return (original as any).apply(this,args);};});
  for(let i=0;i<18;i++){await range(page,'結束X 比例',60+i*5);await range(page,'點陣密度',80+i*3);}
@@ -130,16 +130,17 @@ test('車縫間距零自動合併，PNG 沒有內部分隔車縫線且可還原'
  await range(page,'車縫圖案間距',0);await expect(page.getByRole('button',{name:'間距為 0 · 已自動合併',exact:true})).toBeDisabled();await expect(page.getByTestId('stitch-preview').locator('[data-stitch-cells]')).toHaveAttribute('data-stitch-cells','1');expect(red(await png())).toBe(0);const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings.stitch).toMatchObject({spacingX:0,spacingY:0});await range(page,'車縫圖案間距',2);await expect.poll(async()=>Number(await page.getByTestId('stitch-preview').locator('[data-stitch-cells]').getAttribute('data-stitch-cells'))).toBeGreaterThan(1);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'zero-gap.json',mimeType:'application/json',buffer:json});await expect(page.getByTestId('stitch-preview').locator('[data-stitch-cells]')).toHaveAttribute('data-stitch-cells','1');
 });
 
-test('並列 A＋B、單一長方形的比例旋轉及匯出還原',async({page})=>{
+test('並列 A→B 形狀漸變、單一長方形的比例旋轉及匯出還原',async({page})=>{
  const a=page.getByTestId('shape-operand-a'),b=page.getByTestId('shape-operand-b');
  const ar=await a.boundingBox(),br=await b.boundingBox();expect(ar).not.toBeNull();expect(br).not.toBeNull();expect(Math.abs(ar!.y-br!.y)).toBeLessThan(2);expect(br!.x).toBeGreaterThan(ar!.x);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2)).toBe(true);
+ await page.getByRole('button',{name:'無漸變',exact:true}).click();
  await a.getByRole('button',{name:'長方形',exact:true}).click();await b.getByRole('button',{name:'結束長方形',exact:true}).click();await range(page,'結束圖形旋轉',90);
- await page.getByRole('button',{name:'形狀相加合併',exact:true}).click();await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('switch',{name:'啟用形狀漸變',exact:true})).toHaveAttribute('aria-checked','false');
+ await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveCount(0);await expect(page.getByRole('switch',{name:'啟用形狀漸變',exact:true})).toHaveAttribute('aria-checked','true');
  await page.getByRole('switch',{name:'結束比例鎖定',exact:true}).click();await range(page,'結束Y 比例',180);await expect(page.getByRole('slider',{name:'起始Y 比例',exact:true})).toHaveValue('100');
  const svg=(await exportFile(page,'SVG')).toString('utf8');expect(svg).toContain('<path');expect(svg).not.toContain('<image');const png=PNG.sync.read(await exportFile(page,'PNG'));expect(png.width).toBe(2400);
- const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings).toMatchObject({shape:'rectangle',targetShape:'rectangle',combine:true,morph:false,proportions:{end:{rectangle:{y:180,rotation:90}}}});
- await range(page,'結束Y 比例',90);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'operands.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'結束Y 比例',exact:true})).toHaveValue('180');await expect(page.getByRole('button',{name:'形狀相加合併',exact:true})).toHaveAttribute('aria-pressed','true');
+ const json=await exportFile(page,'JSON');expect(JSON.parse(json.toString()).settings).toMatchObject({mode:'uniform',shape:'rectangle',targetShape:'rectangle',combine:false,morph:true,proportions:{end:{rectangle:{y:180,rotation:90}}}});
+ await range(page,'結束Y 比例',90);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'operands.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'結束Y 比例',exact:true})).toHaveValue('180');await expect(page.getByRole('switch',{name:'啟用形狀漸變',exact:true})).toHaveAttribute('aria-checked','true');
 });
 
 test('車縫 A＋B 並列、先調 B 再合併、置中與 SVG／PNG／JSON',async({page})=>{

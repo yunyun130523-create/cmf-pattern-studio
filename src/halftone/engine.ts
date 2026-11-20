@@ -22,7 +22,7 @@ function simplified(c:Point[]):Point[]{return c.filter((p,i)=>{const a=c[(i+c.le
 export function generateHalftone(s:Settings,compactCircles=false):Pattern{
  const h=s.halftone;if(!h.image)return{glyphs:[],effectiveSpacingX:h.spacingX,effectiveSpacingY:h.spacingY,limited:false,coverage:0};
  let source=patternContours(s);if(fastCircle(s))source=[Array.from({length:32},(_,i)=>({x:Math.cos(i*Math.PI/16)*.5,y:Math.sin(i*Math.PI/16)*.5}))];else if(!s.morph)source=source.map(c=>{const simple=simplified(c);return simple.length>=3?simple:c;});
- const pair=s.morph&&!s.combine&&s.mode!=='uniform'?morphOutlines(s):null,n=pair?pair[0].length:source.reduce((a,c)=>a+c.length,0),cap=Math.min(60000,Math.floor(1800000/n));
+ const pair=s.morph&&!s.combine?morphOutlines(s):null,n=pair?pair[0].length:source.reduce((a,c)=>a+c.length,0),cap=Math.min(60000,Math.floor(1800000/n));
  const sx=h.spacingX/Math.sqrt(h.density/100),sy=h.spacingY/Math.sqrt(h.density/100)*(h.layout==='hex'?Math.sqrt(3)/2:1),layout=patternGrid(s.width,s.height,sx,sy,cap),dx=layout.x,dy=layout.y;
  const sample=sampler(h,s.width,s.height),glyphs:Pattern['glyphs']=[],samples:{x:number;y:number;d:number;size:number;randomRotation:number}[]=[];let area=0,minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
  const extent=Math.max(...(pair?[...pair[0],...pair[1]]:source.flat()).map(p=>Math.hypot(p.x,p.y)));
