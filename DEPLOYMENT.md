@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 水平／垂直中心間距下限 0 mm（已發布）
+
+版本 2.0.0-alpha.26：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44652062998
+
+- 原始碼提交：28452b6bf15e42fb1e234213709b51e84b2dae09。
+- 366 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 圖案、車縫孔紋與圖片點陣的中心間距介面及 JSON 驗證皆接受 0。共享網格計算將零軸明確折疊為一列／一行，兩軸零時為單一中心圖案，避免除零與無限迴圈。一般正間距維持原尺度。
+- 修正 Morph 零軸計算、零間距輔助網格及極小數字顯示。保留密度運算預算，對極小正數使用穩定計算，不設正數的固定輸入下限。
+- 實際瀏覽器驗證獨立調整、單／雙軸 0、開啟網格、SVG／PNG／JSON、重新開啟。其他車縫、圖片、材質及大尺寸功能完整回歸。
+- 正式站 HTTP 200，4,462,743 bytes，與本機已測建置逐位元組一致；SHA256：b4e6241b74c64b6d73c85d9c02fd6952d3f779d9ad4134791c1fad3e56ac02c9。
+
 ## 無漸變、mm 長度與取消圖案尺寸固定上限（已發布）
 
 版本 2.0.0-alpha.25：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44500855167
