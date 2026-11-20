@@ -1,3 +1,4 @@
+import {patternGrid} from './grid';
 import { STITCH_DEFAULTS, validateStitch, type StitchSettings } from './stitch/model';
 import { MASK_DEFAULTS, validateMask, type RangeMask } from './mask/model';
 import { rangeSampler } from './mask/engine';
@@ -215,8 +216,9 @@ export function interpolateOutline(from: Point[], to: Point[], progress: number)
  */
 export function morphValue(x: number, s: Settings, spacingX = s.spacingX, y=0, spacingY=s.spacingY): number {
   const vertical=s.morphDirection==='vertical',spacing=vertical?spacingY:spacingX,extent=vertical?s.height:s.width;
+  if(spacing===0&&s.morphDirection!=='custom')return s.morphRangeStart/100;
   const first = spacing / 2;
-  const last = first + Math.max(0, Math.ceil((extent - first) / spacing) - 1) * spacing;
+  const last = spacing===0?first:first + Math.max(0, Math.ceil((extent - first) / spacing) - 1) * spacing;
   const t = s.morphDirection==='custom'?projectedValue(x,y,s.morphStart,s.morphEnd,s.width,s.height):last > first ? clamp(((vertical?y:x) - first) / (last - first)) : 0;
   const smooth = t * t * (3 - 2 * t), linearity = clamp(s.morphAmount / 100);
   const u=(1 - linearity) * smooth + linearity * t;
@@ -230,17 +232,14 @@ export function generatePattern(s: Settings): Pattern {
   const source=patternContours(s),pair=s.morph&&!s.combine&&s.mode!=='uniform'?morphOutlines(s):null;
   const pointCount=pair?pair[0].length:source.reduce((n,c)=>n+c.length,0);
   const cap=Math.max(1,Math.min(12000,Math.floor(1200000/pointCount)));
-  const estimated=s.width/s.spacingX*s.height/s.spacingY;
-  // Consistent safety cap shared by preview and all exports, never export a different pattern.
-  const factor=Math.max(1,Math.sqrt(estimated/cap));
-  const sx=s.spacingX*factor, sy=s.spacingY*factor;
+  const grid=patternGrid(s.width,s.height,s.spacingX,s.spacingY,cap),sx=grid.x,sy=grid.y;
   const custom=s.combine||isCustom(s.shape)||(s.morph&&isCustom(s.targetShape))||hasShapeProportions(s)||(s.morph&&hasShapeProportions(s,'end'));
   const extent=custom?Math.max(...(pair?[...pair[0],...pair[1]]:source.flat()).map(p=>Math.hypot(p.x,p.y))):.72;
   const glyphs: Glyph[]=[];
   let area=0;
-  for(let row=0,y=sy/2;y<s.height;row++,y+=sy) {
+  for(let row=0,y=sy===0?s.height/2:sy/2;(sy>0||row===0)&&y<s.height;row++,y+=sy) {
     const offset=s.stagger && row%2 ? sx/2 : 0;
-    for(let col=0,x=sx/2+offset;x<s.width;col++,x+=sx) {
+    for(let col=0,x=sx===0?s.width/2:sx/2+offset;(sx>0||col===0)&&x<s.width;col++,x+=sx) {
       const weight=randomWeight(x,y,s);
       if(hash(col,row,s.seed)>=densityProbability(x,y,s,weight)) continue;
       const gx=x+(hash(col,row,s.seed+1)-.5)*sx*s.jitter/100*weight;
@@ -263,14 +262,14 @@ export function generatePattern(s: Settings): Pattern {
       glyphs.push({x:gx,y:gy,size,t,morphT:m,rotation,randomT:weight,points:contours[0],contours,d:contours.map(points=>'M'+points.map(p=>`${p.x},${p.y}`).join('L')+'Z').join(' ')});
     }
   }
-  return {glyphs,effectiveSpacingX:sx,effectiveSpacingY:sy,limited:factor>1,coverage:area/(s.width*s.height)*100};
+  return {glyphs,effectiveSpacingX:sx,effectiveSpacingY:sy,limited:grid.limited,coverage:area/(s.width*s.height)*100};
 }
 export function svgDocument(s: Settings, p = generatePattern(s)): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${Number((s.width*25.4/96).toFixed(6))}mm" height="${Number((s.height*25.4/96).toFixed(6))}mm" viewBox="0 0 ${s.width} ${s.height}"><title>CMF Pattern Studio — Seed ${s.seed}</title>${s.transparentBackground?'':`<rect width="100%" height="100%" fill="${s.background}"/>`}<g fill="${s.foreground}" fill-rule="evenodd" opacity="${s.opacity/100}">${p.glyphs.map(g=>s.halftone.enabled&&s.halftone.image&&fastCircle(s)?`<circle cx="${g.x}" cy="${g.y}" r="${g.size/2}"/>`:`<path d="${g.d}"/>`).join('')}</g></svg>`;
 }
 export function projectJSON(s: Settings) { return JSON.stringify({app:'cmf-pattern-studio',version:6,settings:s},null,2); }
 const V2_LIMITS: Partial<Record<keyof Settings,[number,number]>> = {morphRangeStart:[0,100],morphRangeEnd:[0,100],sizeStart:[.1,Infinity],sizeEnd:[.1,Infinity],rotationStart:[-180,180],rotationEnd:[-180,180],randomness:[0,100],randomRotation:[0,180],randomSize:[0,100],randomDensity:[0,100],radius:[.02,20],densityStart:[0,100],densityEnd:[0,100],densityAngle:[-180,180]};
-const LIMITS: Partial<Record<keyof Settings,[number,number]>> = {width:[200,2400],height:[200,1800],spacingX:[7,Infinity],spacingY:[7,Infinity],minSize:[0,Infinity],maxSize:[.1,Infinity],density:[0,100],rotation:[-180,180],aspect:[1,5],morphAmount:[0,100],falloff:[.2,4],jitter:[0,100],noiseScale:[1,20],seed:[0,2147483647],opacity:[0,100]};
+const LIMITS: Partial<Record<keyof Settings,[number,number]>> = {width:[200,2400],height:[200,1800],spacingX:[0,Infinity],spacingY:[0,Infinity],minSize:[0,Infinity],maxSize:[.1,Infinity],density:[0,100],rotation:[-180,180],aspect:[1,5],morphAmount:[0,100],falloff:[.2,4],jitter:[0,100],noiseScale:[1,20],seed:[0,2147483647],opacity:[0,100]};
 export function parseProject(text: string): Settings {
   const doc=JSON.parse(text);
   if(!doc || doc.app!=='cmf-pattern-studio' || ![1,2,3,4,5,6].includes(doc.version) || !doc.settings) throw new Error('請選擇本工作台匯出的 JSON 專案檔。');

@@ -19,7 +19,7 @@ export function validateImage(raw:unknown):SampleImage{
 }
 export function validateHalftone(raw:unknown):HalftoneSettings{
  if(!raw||typeof raw!=='object')throw new Error('圖片模式參數無效。');const r=raw as HalftoneSettings,result={...HALFTONE_DEFAULTS};
- const limits={density:[10,400],minSize:[0,Infinity],maxSize:[.1,Infinity],spacingX:[2,Infinity],spacingY:[2,Infinity],brightness:[-100,100],contrast:[0,3],gamma:[.2,3],detail:[16,1024],whiteThreshold:[1,255],jitter:[0,100],randomRotation:[0,180],randomSize:[0,100],zoom:[.25,8],zoomY:[.25,8],offsetX:[-150,150],offsetY:[-150,150]};
+ const limits={density:[10,400],minSize:[0,Infinity],maxSize:[.1,Infinity],spacingX:[0,Infinity],spacingY:[0,Infinity],brightness:[-100,100],contrast:[0,3],gamma:[.2,3],detail:[16,1024],whiteThreshold:[1,255],jitter:[0,100],randomRotation:[0,180],randomSize:[0,100],zoom:[.25,8],zoomY:[.25,8],offsetX:[-150,150],offsetY:[-150,150]};
  for(const [key,[lo,hi]] of Object.entries(limits)){const v=r[key as keyof HalftoneSettings];if(typeof v!=='number'||!Number.isFinite(v)||v<lo||v>hi)throw new Error('圖片參數超出範圍：'+key);Object.assign(result,{[key]:v});}
  for(const k of ['enabled','invert','skipWhite','aspectLock'] as const){if(typeof r[k]!=='boolean')throw new Error('圖片參數錯誤：'+k);result[k]=r[k];}
  if(!['full','sparse'].includes(r.mode)||!['matrix','stagger','hex','random','gradient'].includes(r.layout)||!['contain','cover'].includes(r.fit)||r.minSize>r.maxSize)throw new Error('圖片排列或尺寸參數無效。');

@@ -63,7 +63,7 @@ describe('gradient and deterministic generation',()=>{
 describe('file integrity',()=>{
   it('round-trips every parameter, including control points',()=>{expect(parseProject(projectJSON(DEFAULTS))).toEqual(DEFAULTS);});
   it.each([
-    {foreground:'url(https://invalid.example)'},{width:Infinity},{spacingX:0},{seed:-1},{seed:1.5},{start:{x:2,y:0}},{minSize:30,maxSize:5},{shape:'script'},{density:101}
+    {foreground:'url(https://invalid.example)'},{width:Infinity},{spacingX:-1},{seed:-1},{seed:1.5},{start:{x:2,y:0}},{minSize:30,maxSize:5},{shape:'script'},{density:101}
   ])('rejects unsafe or invalid settings %j',patch=>{expect(()=>parseProject(JSON.stringify({app:'cmf-pattern-studio',version:1,settings:{...DEFAULTS,...patch}}))).toThrow();});
   it('rejects unrelated JSON and unknown versions',()=>{expect(()=>parseProject('{}')).toThrow();expect(()=>parseProject('{"app":"cmf-pattern-studio","version":2,"settings":{}}')).toThrow();});
   it('SVG is valid XML with exact preview paths and no controls',()=>{
