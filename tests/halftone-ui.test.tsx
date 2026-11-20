@@ -18,16 +18,16 @@ afterEach(()=>{vi.unstubAllGlobals();});
 async function upload(){fireEvent.click(screen.getByRole('button',{name:'圖片轉點陣'}));fireEvent.change(screen.getByLabelText('點陣來源圖片檔案'),{target:{files:[new File(['jpg'],'mountain.jpg',{type:'image/jpeg'})]}});await screen.findByLabelText('圖片轉換模式');await waitFor(()=>expect(results.some(x=>x.packed)).toBe(true));}
 const slider=(name:string,value:number)=>fireEvent.change(screen.getByRole('slider',{name}),{target:{value:['最小點尺寸','最大點尺寸','點陣水平間距','點陣垂直間距'].includes(name)?toMm(value):value}});
 describe('圖片點陣完整操作',()=>{
- it('上傳 JPG、Canvas 預覽、尺寸密度對比與兩模式切換、三角形、SVG 匯出',async()=>{
+ it('上傳 JPG、Canvas 預覽、尺寸密度與兩模式切換、三角形、SVG 匯出',async()=>{
   render(<App/>);await upload();expect(decode.decodePhotograph).toHaveBeenCalled();expect(screen.getByTestId('halftone-canvas')).toBeInTheDocument();await waitFor(()=>expect(context.fill).toHaveBeenCalled());const first=results.at(-1).packed.count;
-  slider('最大點尺寸',4);slider('點陣密度',60);slider('圖片對比',1.7);fireEvent.change(screen.getByLabelText('圖片轉換模式'),{target:{value:'sparse'}});fireEvent.change(screen.getByLabelText('點陣形狀'),{target:{value:'triangle'}});
-  await waitFor(()=>expect(requests.at(-1).settings.shape).toBe('triangle'));expect(requests.at(-1).settings.halftone.contrast).toBe(1.7);expect(results.at(-1).packed.count).toBeLessThan(first);
+  slider('最大點尺寸',4);slider('點陣密度',60);fireEvent.change(screen.getByLabelText('圖片轉換模式'),{target:{value:'sparse'}});fireEvent.change(screen.getByLabelText('點陣形狀'),{target:{value:'triangle'}});
+  await waitFor(()=>expect(requests.at(-1).settings.shape).toBe('triangle'));for(const name of ['圖片亮度','圖片對比','Gamma'])expect(screen.queryByRole('slider',{name,exact:true})).not.toBeInTheDocument();expect(results.at(-1).packed.count).toBeLessThan(first);
   fireEvent.click(screen.getByRole('button',{name:'匯出 SVG'}));fireEvent.click(screen.getByRole('button',{name:'下載 SVG'}));await waitFor(()=>expect(exports.downloadBlob).toHaveBeenCalled());const blob=vi.mocked(exports.downloadBlob).mock.calls.at(-1)![0];const text=await new Promise<string>(resolve=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.readAsText(blob);});expect(text).toContain('<path d="M');expect(text).not.toContain('<image');
  });
  it('裁切、縮放、位置、等比例與五種排列皆可操作，移除後回到幾何模式',async()=>{
   render(<App/>);await upload();slider('圖片縮放',2);slider('圖片位置 X',12);slider('圖片位置 Y',-8);slider('裁切起點 X',20);slider('裁切寬度',60);fireEvent.click(screen.getByRole('checkbox',{name:'圖片等比例縮放'}));slider('圖片垂直縮放',1.5);
   for(const layout of ['matrix','stagger','hex','random','gradient']){fireEvent.change(screen.getByLabelText('點陣排列方式'),{target:{value:layout}});expect(screen.getByLabelText('點陣排列方式')).toHaveValue(layout);}
-  for(const [name,value] of [['點陣位置隨機程度',45],['點陣旋轉隨機程度',60],['點陣尺寸隨機程度',25],['圖片亮度',10],['Gamma',1.5],['細節保留程度',128]] as const)slider(name,value);
+  for(const [name,value] of [['點陣位置隨機程度',45],['點陣旋轉隨機程度',60],['點陣尺寸隨機程度',25],['細節保留程度',128]] as const)slider(name,value);
   fireEvent.click(screen.getByRole('checkbox',{name:'黑白反轉'}));await waitFor(()=>expect(requests.at(-1).settings.halftone.invert).toBe(true));expect(requests.at(-1).settings.halftone.crop.width).toBe(.6);fireEvent.click(screen.getByRole('button',{name:'移除點陣來源圖片'}));expect(screen.queryByTestId('halftone-canvas')).not.toBeInTheDocument();expect(screen.getByTestId('pattern-glyphs').querySelectorAll('path').length).toBeGreaterThan(0);
  });
  it('HEX／RGB、透明背景可用，JSON 匯入保留圖片、參數與 Seed',async()=>{
