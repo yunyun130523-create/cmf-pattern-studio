@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 漸變與圖片入口並列、移除三項明暗滑桿（已發布）
+
+版本 2.0.0-alpha.31：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44696749009
+
+- 移除滑桿提交：2a889fead4e5d440be6b15453bcabfe19781a1f7；同區並列提交：465d024af4beb9d8d4ac43daea5c34af4f7c5839。
+- 370 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 五種漸變模式與圖片轉點陣入口在同一個兩欄區域並列。保留圖片上傳區後立即銜接 A／B 幾何形狀，收合後也只有一組形狀控制。
+- 移除圖片亮度、圖片對比、Gamma 三個 UI 滑桿；不改引擎與舊 JSON 明暗參數。既有圖片專案可還原，新上傳使用原本預設值。
+- 既有 UI 與原生檔案上傳驗收檢查三個控制不存在、入口位於同一模式區、圖片／形狀順序正確，並驗證密度調整、SVG 及 JSON 還原。
+- 正式站 HTTP 200，4,464,633 bytes，與本機已測建置逐位元組一致；SHA256：b2ae9f180ae29972cb1c25dce23eeb47a68c05ff926abe900be73f32bc5077f0。
+
 ## 圖案設計操作順序調整（已發布）
 
 版本 2.0.0-alpha.29：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44690808184
