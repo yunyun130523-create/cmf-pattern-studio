@@ -1,0 +1,10 @@
+import {expect,it} from 'vitest';
+import {DEFAULTS,generatePattern,parseProject,projectJSON,svgDocument,type Settings} from '../src/engine';
+import {gradientModePatch} from '../src/gradient';
+import {HALFTONE_DEFAULTS,imageFromRGBA} from '../src/halftone/model';
+const rgba=new Uint8Array(16*16*4);for(let i=3;i<rgba.length;i+=4)rgba[i]=255;
+const image=imageFromRGBA(rgba,16,16,{name:'logo.png',format:'PNG'});
+const base:Settings={...DEFAULTS,width:240,height:200,morph:false,shape:'circle',halftone:{...HALFTONE_DEFAULTS,enabled:true,image,layout:'stagger',spacingX:12,spacingY:12,maxSize:8}};
+it('圖片規則排列時五種漸變卡片實際改變幾何且可重複切換',()=>{let s=base;let previous=generatePattern(s);for(const mode of ['radial','horizontal','vertical','irregular','uniform','radial'] as const){s={...s,...gradientModePatch(s,mode)};const p=generatePattern(s);expect(s.halftone.layout).toBe('gradient');expect(p.glyphs.length).toBeGreaterThan(5);expect(p.glyphs.map(g=>g.d)).not.toEqual(previous.glyphs.map(g=>g.d));if(mode==='uniform')expect(new Set(p.glyphs.map(g=>g.size))).toEqual(new Set([8]));previous=p;}});
+it('從圖片隨機排列切回漸變會清除殘留擾動且保留圖片裁切尺寸',()=>{const noisy={...base,halftone:{...base.halftone,layout:'random' as const,jitter:100,randomRotation:70,randomSize:50,zoom:1.2,crop:{x:.1,y:.2,width:.8,height:.7}}};for(const mode of ['horizontal','vertical','radial','uniform'] as const){const s={...noisy,...gradientModePatch(noisy,mode)};expect(s.halftone).toEqual({...noisy.halftone,layout:'gradient',jitter:0,randomRotation:0,randomSize:0});const restored=parseProject(projectJSON(s));expect(generatePattern(restored)).toEqual(generatePattern(s));expect(svgDocument(restored)).toEqual(svgDocument(s));}});
+it('一般圖案與車縫切換漸變不會更動未使用的圖片排列',()=>{for(const s of [{...base,halftone:{...base.halftone,enabled:false}},{...base,stitch:{...base.stitch,enabled:true}}])expect(gradientModePatch(s,'radial').halftone).toBeUndefined();});

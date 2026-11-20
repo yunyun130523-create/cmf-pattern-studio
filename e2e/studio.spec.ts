@@ -34,6 +34,9 @@ test('真正 JPG 上傳、Worker／Canvas、尺寸／密度、SVG 與 JSON 還�
  const svg=(await exportFile(page,'SVG')).toString('utf8');expect((svg.match(/<path\b/g)??[]).length).toBeGreaterThan(1000);expect(svg).not.toMatch(/<image\b|data:image|<filter\b/);
  const json=await exportFile(page,'JSON');const project=JSON.parse(json.toString('utf8'));expect(project.settings.halftone).toMatchObject({layout:'stagger',jitter:0,randomRotation:0,randomSize:0});expect(project.settings.halftone.image.format).toBe('JPEG');expect(project.settings.halftone.image.pixels.length).toBeGreaterThan(1000);expect(project.settings.shape).toBe('triangle');
  await range(page,'點陣密度',60);await page.getByLabel('選擇 JSON 專案檔').setInputFiles({name:'restore.json',mimeType:'application/json',buffer:json});await expect(page.getByRole('slider',{name:'點陣密度',exact:true})).toHaveValue('80');await expect(page.getByLabel('點陣形狀',{exact:true})).toHaveValue('triangle');await ready(page);
+ for(const label of ['中心擴散','水平漸變','垂直漸變','不規則漸變','無漸變','中心擴散']){const before=await page.getByTestId('halftone-canvas').evaluate((node:HTMLCanvasElement)=>node.toDataURL());await page.getByRole('button',{name:label,exact:true}).click();await expect(page.getByLabel('點陣排列方式',{exact:true})).toHaveValue('gradient');await expect.poll(async()=>page.getByTestId('halftone-canvas').evaluate((node:HTMLCanvasElement)=>node.toDataURL()).then(next=>next!==before),{timeout:15000,message:'漸變卡片必須改變實際 Canvas 像素'}).toBe(true);await ready(page);}
+ const gradient=JSON.parse((await exportFile(page,'JSON')).toString()).settings;expect(gradient.mode).toBe('radial');expect(gradient.halftone.layout).toBe('gradient');expect(gradient.halftone.image.id).toBe(project.settings.halftone.image.id);
+
 });
 
 test('真正透明 PNG 上傳與高解析度透明 PNG 下載',async({page})=>{
