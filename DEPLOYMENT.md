@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 圖片點陣隨機排列還原修正（已發布）
+
+版本 2.0.0-alpha.27：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44664642169
+
+- 原始碼提交：1c32bddcddf29274ab0005b33d94435bda3e4b21。
+- 368 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 原因：選取 random 時會將 jitter 設成 100，但選回規則排列只改 layout，未清除隨機轉換。統一排列切換規則，matrix／stagger／hex／gradient 同時清除 jitter、randomRotation、randomSize。
+- 舊專案中已殘留隨機值的規則排列會顯示「恢復規則排列」，可直接修復目前選項。維持圖片、其他參數與 JSON 相容，手動隨機滑桿仍可操作。
+- 四種規則模式的原始幾何、SVG 與 JSON 有精確回歸；實際瀏覽器 JPG 上傳後切換、手動擾動、一鍵還原、匯出及重新匯入皆通過。
+- 正式站 HTTP 200，4,462,992 bytes，與本機已測建置逐位元組一致；SHA256：c8a0bf76a94d199e45a3d0b35d27758d83446fa7169aeb49f09d7b5108346373。
+
 ## 水平／垂直中心間距下限 0 mm（已發布）
 
 版本 2.0.0-alpha.26：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44652062998

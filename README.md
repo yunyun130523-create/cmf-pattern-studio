@@ -6,13 +6,21 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。366 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。368 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 隨機點陣可恢復規則排列 · 2.0.0-alpha.27（已發布）
+
+修正圖片點陣切到隨機排列後，位置隨機程度仍殘留 100% 的問題。切回規則矩陣、錯位、六角或漸變排列時，位置、旋轉及尺寸的隨機參數都會歸零。圖片、裁切、明暗、尺寸與間距保留原設定。
+
+若已儲存的專案目前選了規則排列但仍有隨機參數，可直接按「恢復規則排列」；也可切換任一規則選項。進入隨機排列仍會啟用位置隨機，進階滑桿可另行調整。
+
+368 項測試、63 項桌面 Chromium／Android Chromium／iPhone WebKit 驗收通過，包含實際 JPG 上傳、排列切回、按鈕還原、儲存與向量匯出。
 
 ## 中心間距可到 0 mm · 2.0.0-alpha.26（已發布）
 
