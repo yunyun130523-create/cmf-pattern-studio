@@ -6,6 +6,17 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 圖片轉點陣入口整合（已發布）
+
+版本 2.0.0-alpha.28：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44672360722
+
+- 原始碼提交：ab9b1f9f5f0461a56f4925981c3d14274e46a750。
+- 369 項測試、63 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 圖案設計的漸變模式區新增圖片轉點陣上傳按鍵，直接開啟原生檔案選擇器。主導覽移除圖片分頁，四個分頁保持並排。
+- 圖片設定在同頁展開，可收合、重開及更換來源；保留預覽、裁切、明暗、排列、顏色及匯出。舊圖片 JSON 自動開啟圖案設計及圖片設定；取消或解碼失敗保留原設計。
+- 實際瀏覽器經由 filechooser 上傳 JPG／PNG，驗證收合後仍保留預覽、重開設定、修改及 JSON 還原。桌面與手機尺寸沒有水平溢出。
+- 正式站 HTTP 200，4,464,586 bytes，與本機已測建置逐位元組一致；SHA256：b38a1465c5ac5bac2978fac2997653e4fcd03eb9ee3532a70b001aadd227bc4d。
+
 ## 圖片點陣隨機排列還原修正（已發布）
 
 版本 2.0.0-alpha.27：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44664642169

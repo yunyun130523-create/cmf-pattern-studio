@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。368 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。369 項測試與 63 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 圖片上傳整合至圖案設計 · 2.0.0-alpha.28（已發布）
+
+在「圖案設計 → 漸變模式」新增「圖片轉點陣」上傳按鍵；第一次點擊直接選擇 JPG／PNG／DWG。移除上方獨立圖片分頁，保留四個主分頁並列。
+
+圖片設定在同頁展開，可收合而不移除來源或預覽；再次點擊可編輯或更換圖片。保留裁切、明暗、尺寸、間距、形狀、顏色與匯出功能，舊 JSON 圖片專案載入後會自動展開設定。
 
 ## 隨機點陣可恢復規則排列 · 2.0.0-alpha.27（已發布）
 
