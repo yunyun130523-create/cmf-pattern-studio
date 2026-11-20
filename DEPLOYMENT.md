@@ -6,6 +6,18 @@
 
 首次成功的驗收與發布：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/42966047757
 
+## 圖案設計由 A 漸變到 B（已發布）
+
+版本 2.0.0-alpha.34：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44708141041
+
+- 原始碼提交：0c3b32fcf5ccb4fddc6517abca38c52c6052ed45。
+- 384 項測試、66 項桌面 Chromium、Android Chromium 與 iPhone WebKit 驗收全部通過。
+- 圖案設計移除 A+B 相加開關與聯集說明，顯示起始 A→結束 B 漸變箭頭。選擇 B 或加入 B 圖案時啟用形狀過渡，並由既有輪廓相容性檢查判定是否可插值。
+- 一般圖案及圖片點陣可在 uniform 固定尺寸下獨立啟用形狀漸變；仍保留選取無漸變卡片時的原有重設行為。固定尺寸下的自訂形狀方向控制點也能操作。
+- 舊相加設計從瀏覽器或 JSON 載入圖案模式時轉為 combine=false、可相容時 morph=true；保留 A、B、比例與尺寸。電腦車縫的獨立合併設定及已開啟車縫的舊設計不轉換；進入圖案設計時才套用新的 A→B 邏輯。
+- 驗證固定尺寸下的一般／圖片實際輪廓變形、舊專案載入、A／B 比例獨立及 JSON 還原。原生瀏覽器確認 A→B 匯出及固定尺寸恢復，同時回歸車縫 A+B 合併與 PNG／SVG／JSON。桌面視覺檢查顯示菱形逐步變成圓形。
+- 正式站 HTTP 200，4,469,381 bytes，與本機已測建置逐位元組一致；SHA256：26043c2bdce449916a301a51f564ae2d918c9b0778414338e9e6890ffa9a9a07。
+
 ## 預覽資源穩定性、錯誤恢復與圖片 A／B 變形（已發布）
 
 版本 2.0.0-alpha.33：https://github.com/yunyun130523-create/cmf-pattern-studio/actions/runs/44704743475

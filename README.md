@@ -6,13 +6,19 @@
 
 正式網站：https://yunyun130523-create.github.io/cmf-pattern-studio/
 
-已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。380 項測試與 66 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
+已透過免費 GitHub Pages 部署。.github/workflows/pages.yml 會在 main 更新後自動檢查、建置、執行桌面／手機尺寸瀏覽器驗收，通過後發布。384 項測試與 66 項跨瀏覽器驗收已通過，完整紀錄見 DEPLOYMENT.md。
 
 ## 直接使用
 
 用最新版 Chrome 或 Edge 開啟交付檔 `AI-CMF-Pattern-Studio.html`。網站的 JavaScript、樣式、圖示與 DWG 背景處理器都已內嵌，不需安裝 Node.js，也不需連網。
 
 ZIP 中另有 `AI-CMF-Pattern-Studio.html`，可解壓後開啟。請勿在文字編輯器內預覽 HTML；請使用瀏覽器。
+
+## 圖案設計改為 A→B · 2.0.0-alpha.34（已發布）
+
+圖案設計的 A、B 分別是起始、結束形狀，中間改為漸變箭頭，移除相加按鈕。選擇 B 會啟用形狀漸變，比例與旋轉分別套用於兩端。電腦車縫的 A+B 合併功能保留。
+
+「無漸變」選項仍可設定固定尺寸，再獨立啟用形狀變形；圖片點陣與一般圖案都支援。自訂形狀方向的綠色控制點也可在固定尺寸下操作。舊相加專案進入圖案設計時會轉為 A→B，保留兩端形狀與比例；無法插值的輪廓會保留資料並顯示既有提示。
 
 ## 預覽穩定性與圖片形狀漸變 · 2.0.0-alpha.33（已發布）
 
